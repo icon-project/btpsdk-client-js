@@ -1,0 +1,4376 @@
+{
+  "components": {
+    "parameters": {
+      "blockID": {
+        "in": "path",
+        "name": "blockID",
+        "required": true,
+        "schema": {
+          "$ref": "#/components/schemas/BlockID"
+        }
+      },
+      "height": {
+        "in": "query",
+        "name": "height",
+        "schema": {
+          "format": "int64",
+          "type": "integer"
+        }
+      },
+      "method": {
+        "in": "path",
+        "name": "method",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "network": {
+        "in": "query",
+        "name": "network",
+        "required": true,
+        "schema": {
+          "enum": [
+            "eth2_test",
+            "bsc_test",
+            "icon_test"
+          ],
+          "type": "string"
+        }
+      },
+      "serviceOrAddress": {
+        "in": "path",
+        "name": "serviceOrAddress",
+        "required": true,
+        "schema": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/components/schemas/Address"
+            }
+          ]
+        }
+      },
+      "txID": {
+        "in": "path",
+        "name": "txID",
+        "required": true,
+        "schema": {
+          "$ref": "#/components/schemas/TxID"
+        }
+      }
+    },
+    "schemas": {
+      "Address": {
+        "format": "Address",
+        "title": "Address",
+        "type": "string"
+      },
+      "BlockID": {
+        "oneOf": [
+          {
+            "pattern": "^0x([0-9a-f][0-9a-f])*$",
+            "type": "string"
+          },
+          {
+            "format": "byte",
+            "type": "string"
+          }
+        ],
+        "title": "BlockID"
+      },
+      "Boolean": {
+        "title": "Boolean",
+        "type": "boolean"
+      },
+      "Bytes": {
+        "format": "byte",
+        "title": "Bytes",
+        "type": "string"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "data": {},
+          "message": {
+            "type": "string"
+          }
+        },
+        "title": "ErrorResponse",
+        "type": "object"
+      },
+      "Integer": {
+        "oneOf": [
+          {
+            "pattern": "^(0x|\\-0x)(0|[1-9a-f][0-9a-f]*)$",
+            "type": "string"
+          },
+          {
+            "pattern": "^(|\\-)(0|[1-9][0-9]*)$",
+            "type": "string"
+          },
+          {
+            "type": "integer"
+          }
+        ],
+        "title": "Integer"
+      },
+      "MethodInfo": {
+        "properties": {
+          "inputs": {
+            "additionalProperties": {
+              "properties": {
+                "dimension": {
+                  "type": "integer"
+                },
+                "fields": {
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/TypeInfo"
+                  },
+                  "type": "object"
+                },
+                "type": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "type": "object"
+          },
+          "name": {
+            "type": "string"
+          },
+          "networkTypes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "output": {
+            "properties": {
+              "dimension": {
+                "type": "integer"
+              },
+              "fields": {
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/TypeInfo"
+                },
+                "type": "object"
+              },
+              "type": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "payable": {
+            "type": "boolean"
+          },
+          "readonly": {
+            "type": "boolean"
+          }
+        },
+        "title": "MethodInfo",
+        "type": "object"
+      },
+      "MethodInfos": {
+        "items": {
+          "properties": {
+            "inputs": {
+              "additionalProperties": {
+                "properties": {
+                  "dimension": {
+                    "type": "integer"
+                  },
+                  "fields": {
+                    "additionalProperties": {
+                      "$ref": "#/components/schemas/TypeInfo"
+                    },
+                    "type": "object"
+                  },
+                  "type": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "type": "object"
+            },
+            "name": {
+              "type": "string"
+            },
+            "networkTypes": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "output": {
+              "properties": {
+                "dimension": {
+                  "type": "integer"
+                },
+                "fields": {
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/TypeInfo"
+                  },
+                  "type": "object"
+                },
+                "type": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "payable": {
+              "type": "boolean"
+            },
+            "readonly": {
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        },
+        "title": "MethodInfos",
+        "type": "array"
+      },
+      "Options": {
+        "title": "Options",
+        "type": "object"
+      },
+      "Request": {
+        "properties": {
+          "network": {
+            "type": "string"
+          },
+          "options": {
+            "additionalProperties": {},
+            "type": "object"
+          },
+          "params": {
+            "additionalProperties": {},
+            "type": "object"
+          }
+        },
+        "title": "Request",
+        "type": "object"
+      },
+      "String": {
+        "title": "String",
+        "type": "string"
+      },
+      "TxID": {
+        "oneOf": [
+          {
+            "pattern": "^0x([0-9a-f][0-9a-f])*$",
+            "type": "string"
+          },
+          {
+            "format": "byte",
+            "type": "string"
+          }
+        ],
+        "title": "TxID"
+      },
+      "TypeInfo": {
+        "properties": {
+          "dimension": {
+            "type": "integer"
+          },
+          "fields": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/TypeInfo"
+            },
+            "type": "object"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "title": "TypeInfo",
+        "type": "object"
+      },
+      "foundation.icon.btp.lib.BMCStatus": {
+        "properties": {
+          "cur_height": {
+            "$ref": "#/components/schemas/Integer"
+          },
+          "rx_seq": {
+            "$ref": "#/components/schemas/Integer"
+          },
+          "tx_seq": {
+            "$ref": "#/components/schemas/Integer"
+          },
+          "verifier": {
+            "$ref": "#/components/schemas/foundation.icon.btp.lib.BMVStatus"
+          }
+        },
+        "required": [
+          "rx_seq",
+          "tx_seq",
+          "verifier",
+          "cur_height"
+        ],
+        "title": "foundation.icon.btp.lib.BMCStatus",
+        "type": "object"
+      },
+      "foundation.icon.btp.lib.BMVStatus": {
+        "properties": {
+          "extra": {
+            "$ref": "#/components/schemas/Bytes"
+          },
+          "height": {
+            "$ref": "#/components/schemas/Integer"
+          }
+        },
+        "required": [
+          "height",
+          "extra"
+        ],
+        "title": "foundation.icon.btp.lib.BMVStatus",
+        "type": "object"
+      },
+      "java.util.Map": {
+        "description": "Unknown",
+        "title": "java.util.Map",
+        "type": "object"
+      }
+    }
+  },
+  "externalDocs": {
+    "description": "Find out more about BTP SDK",
+    "url": "https://github.com/icon-project/btp-sdk"
+  },
+  "info": {
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "title": "BTP SDK  - OpenAPI 3.0.3",
+    "version": "0.1.0"
+  },
+  "openapi": "3.0.3",
+  "paths": {
+    "/api": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "networks": {
+                        "additionalProperties": {
+                          "type": "string"
+                        },
+                        "type": "object"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "summary": "Retrieve services",
+        "tags": [
+          "General",
+          "eth2",
+          "bsc",
+          "icon"
+        ]
+      },
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "address": {
+                    "type": "string"
+                  },
+                  "network": {
+                    "type": "string"
+                  },
+                  "spec": {}
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          }
+        },
+        "summary": "Register contract service",
+        "tags": [
+          "Experimental",
+          "eth2",
+          "bsc",
+          "icon"
+        ]
+      }
+    },
+    "/api/bmc/addBTPLink": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for icon_test",
+                    "properties": {
+                      "_link": {
+                        "$ref": "#/components/schemas/String"
+                      },
+                      "_networkId": {
+                        "$ref": "#/components/schemas/Integer"
+                      }
+                    },
+                    "required": [
+                      "_networkId",
+                      "_link"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "icon",
+          "Writable",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/addLink": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test",
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for eth2_test,bsc_test,icon_test",
+                    "properties": {
+                      "_link": {
+                        "$ref": "#/components/schemas/String"
+                      }
+                    },
+                    "required": [
+                      "_link"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Writable",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/addOwner": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test",
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for eth2_test,bsc_test,icon_test",
+                    "properties": {
+                      "_addr": {
+                        "$ref": "#/components/schemas/Address"
+                      }
+                    },
+                    "required": [
+                      "_addr"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Writable",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/addRelay": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test",
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for eth2_test,bsc_test,icon_test",
+                    "properties": {
+                      "_addr": {
+                        "$ref": "#/components/schemas/Address"
+                      },
+                      "_link": {
+                        "$ref": "#/components/schemas/String"
+                      }
+                    },
+                    "required": [
+                      "_link",
+                      "_addr"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Writable",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/addRoute": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test",
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for eth2_test,bsc_test,icon_test",
+                    "properties": {
+                      "_dst": {
+                        "$ref": "#/components/schemas/String"
+                      },
+                      "_link": {
+                        "$ref": "#/components/schemas/String"
+                      }
+                    },
+                    "required": [
+                      "_dst",
+                      "_link"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Writable",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/addService": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test",
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for eth2_test,bsc_test,icon_test",
+                    "properties": {
+                      "_addr": {
+                        "$ref": "#/components/schemas/Address"
+                      },
+                      "_svc": {
+                        "$ref": "#/components/schemas/String"
+                      }
+                    },
+                    "required": [
+                      "_svc",
+                      "_addr"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Writable",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/addVerifier": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test",
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for eth2_test,bsc_test,icon_test",
+                    "properties": {
+                      "_addr": {
+                        "$ref": "#/components/schemas/Address"
+                      },
+                      "_net": {
+                        "$ref": "#/components/schemas/String"
+                      }
+                    },
+                    "required": [
+                      "_addr",
+                      "_net"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Writable",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/claimReward": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test",
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for eth2_test,bsc_test,icon_test",
+                    "properties": {
+                      "_network": {
+                        "$ref": "#/components/schemas/String"
+                      },
+                      "_receiver": {
+                        "$ref": "#/components/schemas/String"
+                      }
+                    },
+                    "required": [
+                      "_network",
+                      "_receiver"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Writable",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/dropMessage": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test",
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for eth2_test,bsc_test,icon_test",
+                    "properties": {
+                      "_feeNetwork": {
+                        "$ref": "#/components/schemas/String"
+                      },
+                      "_feeValues": {
+                        "items": {
+                          "oneOf": [
+                            {
+                              "pattern": "^(0x|\\-0x)(0|[1-9a-f][0-9a-f]*)$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^(|\\-)(0|[1-9][0-9]*)$",
+                              "type": "string"
+                            },
+                            {
+                              "type": "integer"
+                            }
+                          ],
+                          "title": "Integer"
+                        },
+                        "type": "array"
+                      },
+                      "_nsn": {
+                        "$ref": "#/components/schemas/Integer"
+                      },
+                      "_seq": {
+                        "$ref": "#/components/schemas/Integer"
+                      },
+                      "_sn": {
+                        "$ref": "#/components/schemas/Integer"
+                      },
+                      "_src": {
+                        "$ref": "#/components/schemas/String"
+                      },
+                      "_svc": {
+                        "$ref": "#/components/schemas/String"
+                      }
+                    },
+                    "required": [
+                      "_svc",
+                      "_sn",
+                      "_nsn",
+                      "_feeNetwork",
+                      "_feeValues",
+                      "_src",
+                      "_seq"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Writable",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/getBTPLinkNetworkId": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "network",
+            "schema": {
+              "enum": [
+                "icon_test"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "request",
+            "schema": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/Options"
+                },
+                "params": {
+                  "description": "available for icon_test",
+                  "properties": {
+                    "_link": {
+                      "$ref": "#/components/schemas/String"
+                    }
+                  },
+                  "required": [
+                    "_link"
+                  ],
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "available for icon_test",
+                  "oneOf": [
+                    {
+                      "pattern": "^(0x|\\-0x)(0|[1-9a-f][0-9a-f]*)$",
+                      "type": "string"
+                    },
+                    {
+                      "pattern": "^(|\\-)(0|[1-9][0-9]*)$",
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ],
+                  "title": "Integer"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "icon",
+          "Readonly",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/getBTPLinkOffset": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "network",
+            "schema": {
+              "enum": [
+                "icon_test"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "request",
+            "schema": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/Options"
+                },
+                "params": {
+                  "description": "available for icon_test",
+                  "properties": {
+                    "_link": {
+                      "$ref": "#/components/schemas/String"
+                    }
+                  },
+                  "required": [
+                    "_link"
+                  ],
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "available for icon_test",
+                  "oneOf": [
+                    {
+                      "pattern": "^(0x|\\-0x)(0|[1-9a-f][0-9a-f]*)$",
+                      "type": "string"
+                    },
+                    {
+                      "pattern": "^(|\\-)(0|[1-9][0-9]*)$",
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ],
+                  "title": "Integer"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "icon",
+          "Readonly",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/getBtpAddress": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "network",
+            "schema": {
+              "enum": [
+                "eth2_test",
+                "bsc_test",
+                "icon_test"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "request",
+            "schema": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/Options"
+                },
+                "params": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "title": "String",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Readonly",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/getFee": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "network",
+            "schema": {
+              "enum": [
+                "eth2_test",
+                "bsc_test",
+                "icon_test"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "request",
+            "schema": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/Options"
+                },
+                "params": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "properties": {
+                    "_response": {
+                      "$ref": "#/components/schemas/Boolean"
+                    },
+                    "_to": {
+                      "$ref": "#/components/schemas/String"
+                    }
+                  },
+                  "required": [
+                    "_response",
+                    "_to"
+                  ],
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "oneOf": [
+                    {
+                      "pattern": "^(0x|\\-0x)(0|[1-9a-f][0-9a-f]*)$",
+                      "type": "string"
+                    },
+                    {
+                      "pattern": "^(|\\-)(0|[1-9][0-9]*)$",
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ],
+                  "title": "Integer"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Readonly",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/getFeeHandler": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "network",
+            "schema": {
+              "enum": [
+                "eth2_test",
+                "bsc_test",
+                "icon_test"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "request",
+            "schema": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/Options"
+                },
+                "params": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "format": "Address",
+                  "title": "Address",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Readonly",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/getFeeTable": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "network",
+            "schema": {
+              "enum": [
+                "eth2_test",
+                "bsc_test",
+                "icon_test"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "request",
+            "schema": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/Options"
+                },
+                "params": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "properties": {
+                    "_dst": {
+                      "items": {
+                        "title": "String",
+                        "type": "string"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "_dst"
+                  ],
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "items": {
+                    "items": {
+                      "oneOf": [
+                        {
+                          "pattern": "^(0x|\\-0x)(0|[1-9a-f][0-9a-f]*)$",
+                          "type": "string"
+                        },
+                        {
+                          "pattern": "^(|\\-)(0|[1-9][0-9]*)$",
+                          "type": "string"
+                        },
+                        {
+                          "type": "integer"
+                        }
+                      ],
+                      "title": "Integer"
+                    },
+                    "type": "array"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Readonly",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/getLinks": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "network",
+            "schema": {
+              "enum": [
+                "eth2_test",
+                "bsc_test",
+                "icon_test"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "request",
+            "schema": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/Options"
+                },
+                "params": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "items": {
+                    "title": "String",
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Readonly",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/getNetworkAddress": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "network",
+            "schema": {
+              "enum": [
+                "eth2_test",
+                "bsc_test",
+                "icon_test"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "request",
+            "schema": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/Options"
+                },
+                "params": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "title": "String",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Readonly",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/getNetworkSn": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "network",
+            "schema": {
+              "enum": [
+                "eth2_test",
+                "bsc_test",
+                "icon_test"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "request",
+            "schema": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/Options"
+                },
+                "params": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "oneOf": [
+                    {
+                      "pattern": "^(0x|\\-0x)(0|[1-9a-f][0-9a-f]*)$",
+                      "type": "string"
+                    },
+                    {
+                      "pattern": "^(|\\-)(0|[1-9][0-9]*)$",
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ],
+                  "title": "Integer"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Readonly",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/getOwners": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "network",
+            "schema": {
+              "enum": [
+                "icon_test"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "request",
+            "schema": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/Options"
+                },
+                "params": {
+                  "description": "available for icon_test",
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "available for icon_test",
+                  "items": {
+                    "format": "Address",
+                    "title": "Address",
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "icon",
+          "Readonly",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/getRelays": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "network",
+            "schema": {
+              "enum": [
+                "eth2_test",
+                "bsc_test",
+                "icon_test"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "request",
+            "schema": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/Options"
+                },
+                "params": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "properties": {
+                    "_link": {
+                      "$ref": "#/components/schemas/String"
+                    }
+                  },
+                  "required": [
+                    "_link"
+                  ],
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "items": {
+                    "format": "Address",
+                    "title": "Address",
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Readonly",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/getReward": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "network",
+            "schema": {
+              "enum": [
+                "eth2_test",
+                "bsc_test",
+                "icon_test"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "request",
+            "schema": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/Options"
+                },
+                "params": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "properties": {
+                    "_addr": {
+                      "$ref": "#/components/schemas/Address"
+                    },
+                    "_network": {
+                      "$ref": "#/components/schemas/String"
+                    }
+                  },
+                  "required": [
+                    "_network",
+                    "_addr"
+                  ],
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "oneOf": [
+                    {
+                      "pattern": "^(0x|\\-0x)(0|[1-9a-f][0-9a-f]*)$",
+                      "type": "string"
+                    },
+                    {
+                      "pattern": "^(|\\-)(0|[1-9][0-9]*)$",
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ],
+                  "title": "Integer"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Readonly",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/getRoutes": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "network",
+            "schema": {
+              "enum": [
+                "eth2_test",
+                "bsc_test",
+                "icon_test"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "request",
+            "schema": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/Options"
+                },
+                "params": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "title": "java.util.Map",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Readonly",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/getServices": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "network",
+            "schema": {
+              "enum": [
+                "eth2_test",
+                "bsc_test",
+                "icon_test"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "request",
+            "schema": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/Options"
+                },
+                "params": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "title": "java.util.Map",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Readonly",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/getStatus": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "network",
+            "schema": {
+              "enum": [
+                "eth2_test",
+                "bsc_test",
+                "icon_test"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "request",
+            "schema": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/Options"
+                },
+                "params": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "properties": {
+                    "_link": {
+                      "$ref": "#/components/schemas/String"
+                    }
+                  },
+                  "required": [
+                    "_link"
+                  ],
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "properties": {
+                    "cur_height": {
+                      "$ref": "#/components/schemas/Integer"
+                    },
+                    "rx_seq": {
+                      "$ref": "#/components/schemas/Integer"
+                    },
+                    "tx_seq": {
+                      "$ref": "#/components/schemas/Integer"
+                    },
+                    "verifier": {
+                      "$ref": "#/components/schemas/foundation.icon.btp.lib.BMVStatus"
+                    }
+                  },
+                  "required": [
+                    "rx_seq",
+                    "tx_seq",
+                    "verifier",
+                    "cur_height"
+                  ],
+                  "title": "foundation.icon.btp.lib.BMCStatus",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Readonly",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/getVerifiers": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "network",
+            "schema": {
+              "enum": [
+                "eth2_test",
+                "bsc_test",
+                "icon_test"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "request",
+            "schema": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/Options"
+                },
+                "params": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "title": "java.util.Map",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Readonly",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/handleFragment": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for icon_test",
+                    "properties": {
+                      "_idx": {
+                        "$ref": "#/components/schemas/Integer"
+                      },
+                      "_msg": {
+                        "$ref": "#/components/schemas/String"
+                      },
+                      "_prev": {
+                        "$ref": "#/components/schemas/String"
+                      }
+                    },
+                    "required": [
+                      "_idx",
+                      "_prev",
+                      "_msg"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "icon",
+          "Writable",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/handleRelayMessage": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test",
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for eth2_test,bsc_test,icon_test",
+                    "properties": {
+                      "_msg": {
+                        "$ref": "#/components/schemas/Bytes"
+                      },
+                      "_prev": {
+                        "$ref": "#/components/schemas/String"
+                      }
+                    },
+                    "required": [
+                      "_prev",
+                      "_msg"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Writable",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/isOwner": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "network",
+            "schema": {
+              "enum": [
+                "eth2_test",
+                "bsc_test",
+                "icon_test"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "request",
+            "schema": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/Options"
+                },
+                "params": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "properties": {
+                    "_addr": {
+                      "$ref": "#/components/schemas/Address"
+                    }
+                  },
+                  "required": [
+                    "_addr"
+                  ],
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "title": "Boolean",
+                  "type": "boolean"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Readonly",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/removeLink": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test",
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for eth2_test,bsc_test,icon_test",
+                    "properties": {
+                      "_link": {
+                        "$ref": "#/components/schemas/String"
+                      }
+                    },
+                    "required": [
+                      "_link"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Writable",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/removeOwner": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test",
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for eth2_test,bsc_test,icon_test",
+                    "properties": {
+                      "_addr": {
+                        "$ref": "#/components/schemas/Address"
+                      }
+                    },
+                    "required": [
+                      "_addr"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Writable",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/removeRelay": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test",
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for eth2_test,bsc_test,icon_test",
+                    "properties": {
+                      "_addr": {
+                        "$ref": "#/components/schemas/Address"
+                      },
+                      "_link": {
+                        "$ref": "#/components/schemas/String"
+                      }
+                    },
+                    "required": [
+                      "_link",
+                      "_addr"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Writable",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/removeRoute": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test",
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for eth2_test,bsc_test,icon_test",
+                    "properties": {
+                      "_dst": {
+                        "$ref": "#/components/schemas/String"
+                      }
+                    },
+                    "required": [
+                      "_dst"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Writable",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/removeService": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test",
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for eth2_test,bsc_test,icon_test",
+                    "properties": {
+                      "_svc": {
+                        "$ref": "#/components/schemas/String"
+                      }
+                    },
+                    "required": [
+                      "_svc"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Writable",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/removeVerifier": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test",
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for eth2_test,bsc_test,icon_test",
+                    "properties": {
+                      "_net": {
+                        "$ref": "#/components/schemas/String"
+                      }
+                    },
+                    "required": [
+                      "_net"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Writable",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/sendMessage": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test",
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for eth2_test,bsc_test,icon_test",
+                    "properties": {
+                      "_msg": {
+                        "$ref": "#/components/schemas/Bytes"
+                      },
+                      "_sn": {
+                        "$ref": "#/components/schemas/Integer"
+                      },
+                      "_svc": {
+                        "$ref": "#/components/schemas/String"
+                      },
+                      "_to": {
+                        "$ref": "#/components/schemas/String"
+                      }
+                    },
+                    "required": [
+                      "_svc",
+                      "_sn",
+                      "_msg",
+                      "_to"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Writable",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/setBTPLinkNetworkId": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for icon_test",
+                    "properties": {
+                      "_link": {
+                        "$ref": "#/components/schemas/String"
+                      },
+                      "_networkId": {
+                        "$ref": "#/components/schemas/Integer"
+                      }
+                    },
+                    "required": [
+                      "_networkId",
+                      "_link"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "icon",
+          "Writable",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/setFeeHandler": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test",
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for eth2_test,bsc_test,icon_test",
+                    "properties": {
+                      "_addr": {
+                        "$ref": "#/components/schemas/Address"
+                      }
+                    },
+                    "required": [
+                      "_addr"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Writable",
+          "bmc"
+        ]
+      }
+    },
+    "/api/bmc/setFeeTable": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test",
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for eth2_test,bsc_test,icon_test",
+                    "properties": {
+                      "_dst": {
+                        "items": {
+                          "title": "String",
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "_value": {
+                        "items": {
+                          "items": {
+                            "oneOf": [
+                              {
+                                "pattern": "^(0x|\\-0x)(0|[1-9a-f][0-9a-f]*)$",
+                                "type": "string"
+                              },
+                              {
+                                "pattern": "^(|\\-)(0|[1-9][0-9]*)$",
+                                "type": "string"
+                              },
+                              {
+                                "type": "integer"
+                              }
+                            ],
+                            "title": "Integer"
+                          },
+                          "type": "array"
+                        },
+                        "type": "array"
+                      }
+                    },
+                    "required": [
+                      "_dst",
+                      "_value"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Writable",
+          "bmc"
+        ]
+      }
+    },
+    "/api/dappsample/getBTPAddress": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "network",
+            "schema": {
+              "enum": [
+                "eth2_test",
+                "bsc_test",
+                "icon_test"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "request",
+            "schema": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/Options"
+                },
+                "params": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "title": "String",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Readonly",
+          "dappsample"
+        ]
+      }
+    },
+    "/api/dappsample/getLastSn": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "network",
+            "schema": {
+              "enum": [
+                "eth2_test",
+                "bsc_test",
+                "icon_test"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "request",
+            "schema": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/Options"
+                },
+                "params": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "oneOf": [
+                    {
+                      "pattern": "^(0x|\\-0x)(0|[1-9a-f][0-9a-f]*)$",
+                      "type": "string"
+                    },
+                    {
+                      "pattern": "^(|\\-)(0|[1-9][0-9]*)$",
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ],
+                  "title": "Integer"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Readonly",
+          "dappsample"
+        ]
+      }
+    },
+    "/api/dappsample/getXCall": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "network",
+            "schema": {
+              "enum": [
+                "eth2_test",
+                "bsc_test",
+                "icon_test"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "request",
+            "schema": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/Options"
+                },
+                "params": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "format": "Address",
+                  "title": "Address",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Readonly",
+          "dappsample"
+        ]
+      }
+    },
+    "/api/dappsample/handleCallMessage": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test",
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for eth2_test,bsc_test,icon_test",
+                    "properties": {
+                      "_data": {
+                        "$ref": "#/components/schemas/Bytes"
+                      },
+                      "_from": {
+                        "$ref": "#/components/schemas/String"
+                      }
+                    },
+                    "required": [
+                      "_from",
+                      "_data"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Writable",
+          "dappsample"
+        ]
+      }
+    },
+    "/api/dappsample/initialize": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for eth2_test,bsc_test",
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "Writable",
+          "dappsample"
+        ]
+      }
+    },
+    "/api/dappsample/sendMessage": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test",
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for eth2_test,bsc_test,icon_test",
+                    "properties": {
+                      "_data": {
+                        "$ref": "#/components/schemas/Bytes"
+                      },
+                      "_rollback": {
+                        "$ref": "#/components/schemas/Bytes"
+                      },
+                      "_to": {
+                        "$ref": "#/components/schemas/String"
+                      }
+                    },
+                    "required": [
+                      "_to",
+                      "_data"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Writable",
+          "dappsample"
+        ]
+      }
+    },
+    "/api/dappsample/setXCall": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test",
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for eth2_test,bsc_test,icon_test",
+                    "properties": {
+                      "_addr": {
+                        "$ref": "#/components/schemas/Address"
+                      }
+                    },
+                    "required": [
+                      "_addr"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Writable",
+          "dappsample"
+        ]
+      }
+    },
+    "/api/finality/{blockID}": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/network"
+          },
+          {
+            "$ref": "#/components/parameters/height"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "summary": "Get finality of block with given BlockID and height",
+        "tags": [
+          "General",
+          "eth2",
+          "bsc",
+          "icon"
+        ]
+      },
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/blockID"
+        }
+      ]
+    },
+    "/api/result/{txID}": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/network"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "summary": "Get result of transaction with given TxID",
+        "tags": [
+          "General",
+          "eth2",
+          "bsc",
+          "icon"
+        ]
+      },
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/txID"
+        }
+      ]
+    },
+    "/api/xcall/admin": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "network",
+            "schema": {
+              "enum": [
+                "eth2_test",
+                "bsc_test",
+                "icon_test"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "request",
+            "schema": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/Options"
+                },
+                "params": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "format": "Address",
+                  "title": "Address",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Readonly",
+          "xcall"
+        ]
+      }
+    },
+    "/api/xcall/executeCall": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test",
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for eth2_test,bsc_test,icon_test",
+                    "properties": {
+                      "_data": {
+                        "$ref": "#/components/schemas/Bytes"
+                      },
+                      "_reqId": {
+                        "$ref": "#/components/schemas/Integer"
+                      }
+                    },
+                    "required": [
+                      "_data",
+                      "_reqId"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Writable",
+          "xcall"
+        ]
+      }
+    },
+    "/api/xcall/executeRollback": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test",
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for eth2_test,bsc_test,icon_test",
+                    "properties": {
+                      "_sn": {
+                        "$ref": "#/components/schemas/Integer"
+                      }
+                    },
+                    "required": [
+                      "_sn"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Writable",
+          "xcall"
+        ]
+      }
+    },
+    "/api/xcall/getBtpAddress": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "network",
+            "schema": {
+              "enum": [
+                "eth2_test",
+                "bsc_test",
+                "icon_test"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "request",
+            "schema": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/Options"
+                },
+                "params": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "title": "String",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Readonly",
+          "xcall"
+        ]
+      }
+    },
+    "/api/xcall/getFee": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "network",
+            "schema": {
+              "enum": [
+                "eth2_test",
+                "bsc_test",
+                "icon_test"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "request",
+            "schema": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/Options"
+                },
+                "params": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "properties": {
+                    "_net": {
+                      "$ref": "#/components/schemas/String"
+                    },
+                    "_rollback": {
+                      "$ref": "#/components/schemas/Boolean"
+                    }
+                  },
+                  "required": [
+                    "_rollback",
+                    "_net"
+                  ],
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "oneOf": [
+                    {
+                      "pattern": "^(0x|\\-0x)(0|[1-9a-f][0-9a-f]*)$",
+                      "type": "string"
+                    },
+                    {
+                      "pattern": "^(|\\-)(0|[1-9][0-9]*)$",
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ],
+                  "title": "Integer"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Readonly",
+          "xcall"
+        ]
+      }
+    },
+    "/api/xcall/getProtocolFee": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "network",
+            "schema": {
+              "enum": [
+                "eth2_test",
+                "bsc_test",
+                "icon_test"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "request",
+            "schema": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/Options"
+                },
+                "params": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "oneOf": [
+                    {
+                      "pattern": "^(0x|\\-0x)(0|[1-9a-f][0-9a-f]*)$",
+                      "type": "string"
+                    },
+                    {
+                      "pattern": "^(|\\-)(0|[1-9][0-9]*)$",
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ],
+                  "title": "Integer"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Readonly",
+          "xcall"
+        ]
+      }
+    },
+    "/api/xcall/getProtocolFeeHandler": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "network",
+            "schema": {
+              "enum": [
+                "eth2_test",
+                "bsc_test",
+                "icon_test"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "request",
+            "schema": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/Options"
+                },
+                "params": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "available for eth2_test,bsc_test,icon_test",
+                  "format": "Address",
+                  "title": "Address",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Readonly",
+          "xcall"
+        ]
+      }
+    },
+    "/api/xcall/handleBTPError": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for icon_test",
+                    "properties": {
+                      "_code": {
+                        "$ref": "#/components/schemas/Integer"
+                      },
+                      "_msg": {
+                        "$ref": "#/components/schemas/String"
+                      },
+                      "_sn": {
+                        "$ref": "#/components/schemas/Integer"
+                      },
+                      "_src": {
+                        "$ref": "#/components/schemas/String"
+                      },
+                      "_svc": {
+                        "$ref": "#/components/schemas/String"
+                      }
+                    },
+                    "required": [
+                      "_sn",
+                      "_code",
+                      "_msg",
+                      "_src",
+                      "_svc"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "icon",
+          "Writable",
+          "xcall"
+        ]
+      }
+    },
+    "/api/xcall/handleBTPMessage": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for icon_test",
+                    "properties": {
+                      "_from": {
+                        "$ref": "#/components/schemas/String"
+                      },
+                      "_msg": {
+                        "$ref": "#/components/schemas/Bytes"
+                      },
+                      "_sn": {
+                        "$ref": "#/components/schemas/Integer"
+                      },
+                      "_svc": {
+                        "$ref": "#/components/schemas/String"
+                      }
+                    },
+                    "required": [
+                      "_from",
+                      "_svc",
+                      "_sn",
+                      "_msg"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "icon",
+          "Writable",
+          "xcall"
+        ]
+      }
+    },
+    "/api/xcall/sendCallMessage": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test",
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for eth2_test,bsc_test,icon_test",
+                    "properties": {
+                      "_data": {
+                        "$ref": "#/components/schemas/Bytes"
+                      },
+                      "_rollback": {
+                        "$ref": "#/components/schemas/Bytes"
+                      },
+                      "_to": {
+                        "$ref": "#/components/schemas/String"
+                      }
+                    },
+                    "required": [
+                      "_to",
+                      "_data",
+                      "_rollback"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Writable",
+          "xcall"
+        ]
+      }
+    },
+    "/api/xcall/setAdmin": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test",
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for eth2_test,bsc_test,icon_test",
+                    "properties": {
+                      "_address": {
+                        "$ref": "#/components/schemas/Address"
+                      }
+                    },
+                    "required": [
+                      "_address"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Writable",
+          "xcall"
+        ]
+      }
+    },
+    "/api/xcall/setProtocolFee": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test",
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for eth2_test,bsc_test,icon_test",
+                    "properties": {
+                      "_value": {
+                        "$ref": "#/components/schemas/Integer"
+                      }
+                    },
+                    "required": [
+                      "_value"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Writable",
+          "xcall"
+        ]
+      }
+    },
+    "/api/xcall/setProtocolFeeHandler": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test",
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "description": "available for eth2_test,bsc_test,icon_test",
+                    "properties": {
+                      "_addr": {
+                        "$ref": "#/components/schemas/Address"
+                      }
+                    },
+                    "required": [
+                      "_addr"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "tags": [
+          "eth2",
+          "bsc",
+          "icon",
+          "Writable",
+          "xcall"
+        ]
+      }
+    },
+    "/api/{serviceOrAddress}": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/network"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MethodInfos"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "summary": "Retrieve methods",
+        "tags": [
+          "Experimental",
+          "eth2",
+          "bsc",
+          "icon"
+        ]
+      },
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/serviceOrAddress"
+        }
+      ]
+    },
+    "/api/{serviceOrAddress}/{method}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "network",
+            "required": true,
+            "schema": {
+              "enum": [
+                "eth2_test",
+                "bsc_test",
+                "icon_test"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "request",
+            "schema": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/Options"
+                },
+                "params": {
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "summary": "Call readonly method",
+        "tags": [
+          "Experimental",
+          "eth2",
+          "bsc",
+          "icon"
+        ]
+      },
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/serviceOrAddress"
+        },
+        {
+          "$ref": "#/components/parameters/method"
+        }
+      ],
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "network": {
+                    "enum": [
+                      "eth2_test",
+                      "bsc_test",
+                      "icon_test"
+                    ],
+                    "type": "string"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/Options"
+                  },
+                  "params": {
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxID"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "summary": "Call writable method",
+        "tags": [
+          "Experimental",
+          "eth2",
+          "bsc",
+          "icon"
+        ]
+      }
+    },
+    "/autocaller": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "summary": "Retrieve Auto Callers",
+        "tags": [
+          "AutoCaller"
+        ]
+      }
+    },
+    "/autocaller/{service}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "task",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "summary": "Retrieve Auto Caller status",
+        "tags": [
+          "AutoCaller"
+        ]
+      }
+    }
+  },
+  "tags": [
+    {
+      "description": "Auto Caller status",
+      "name": "AutoCaller"
+    },
+    {
+      "description": "General purpose",
+      "name": "General"
+    },
+    {
+      "description": "Experimental endpoints",
+      "name": "Experimental"
+    },
+    {
+      "description": "Readonly service method",
+      "name": "Readonly"
+    },
+    {
+      "description": "Writable service method",
+      "name": "Writable"
+    },
+    {
+      "description": "NetworkType:eth2, Networks: {eth2_test}",
+      "name": "eth2"
+    },
+    {
+      "description": "NetworkType:bsc, Networks: {bsc_test}",
+      "name": "bsc"
+    },
+    {
+      "description": "NetworkType:icon, Networks: {icon_test}",
+      "name": "icon"
+    },
+    {
+      "description": "xcall Service",
+      "name": "xcall"
+    },
+    {
+      "description": "bmc Service",
+      "name": "bmc"
+    },
+    {
+      "description": "dappsample Service",
+      "name": "dappsample"
+    }
+  ]
+}

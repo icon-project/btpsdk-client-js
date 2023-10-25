@@ -1,0 +1,24 @@
+{
+  "name": "@btp/web-signer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./lib.cjs/index.js",
+  "module": "./lib.esm/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:watch": "npm run build:esm -- -w",
+    "build:all": "npm run build:cjs && npm run build:esm",
+    "build:cjs": "tsc --project ./config/tsconfig.cjs.json",
+    "build:esm": "tsc --project ./config/tsconfig.esm.json"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@metamask/detect-provider": "^2.0.0",
+    "@metamask/sdk": "^0.10.0",
+    "btp": "file:../../.."
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.31"
+  }
+}
