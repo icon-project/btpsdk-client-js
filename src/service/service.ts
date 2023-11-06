@@ -1,4 +1,4 @@
-import { assert } from "../utils/errors";
+import { assert } from "../error/index";
 import type {
   Provider,
   PendingTransaction,
@@ -14,6 +14,10 @@ import type {
   Listener,
 } from "./types";
 
+import { getLogger } from '../utils/log';
+
+const log = getLogger('service');
+
 const passProperties = [ 'then' ];
 
 const resolver = {
@@ -23,7 +27,7 @@ const resolver = {
     return {
       network: args[0],
       params: args[1],
-      options: args.length > 2 ? args[2] : undefined
+      options: args.length > 2 ? args[2] : {}
     };
   },
   readable: (args: Array<any>): { network: string, params: { [key: string]: any }, options: CallOpts } => {
@@ -38,18 +42,19 @@ const resolver = {
 const builder = {
   writable: function (owner: BaseService, method: string) {
     return async function (...args: Array<any>): Promise<PendingTransaction> {
-      console.log('transact args:', args);
+      log.debug('transact arguments:', args);
       // TODO validate params
       const { network, params, options } = resolver.writable(args);
-      console.log(`transact network: ${network} params: ${params} options: ${options}`);
+      log.debug(`resolved arguments: network(${network}) params(${params}) options(${options})`);
       return owner.provider.transact(network, owner.name, method, params, options);
     }
   },
 
   readable: function (owner: BaseService, method: string) {
     return async function (...args: Array<any>): Promise<any> {
+      log.debug('call arguments:', args);
       const { network, params, options } = resolver.readable(args);
-      console.log(`call network: ${network} params: ${params} options: ${options}`);
+      log.debug(`resolved arguments: network(${network}) params(${params}) options(${options})`);
       return owner.provider.call(network, owner.name, method, params, options);
     }
   }
@@ -137,6 +142,10 @@ export class BaseService {
     return this;
   }
 
+  off(network: string, listener: Listener) {
+    this.provider.off('log', listener);
+  }
+
   at(network: string): Promise<Contract> {
     return new Promise((resolve, reject) => {
       if (this.networks.find(n => n.name == network) != null) {
@@ -152,28 +161,64 @@ export class Service extends BaseService {
   [ name: string ]: any;
 }
 
-export class Contract {
+export class BaseContract {
   readonly provider: Provider;
   readonly network: string;
   readonly description: ServiceDescription;
+  readonly methods: { [name: string]: any } = {};
+
+  get name(): string {
+    return this.description.name;
+  }
 
   constructor(provider: Provider, network: string, description: ServiceDescription) {
     this.provider = provider;
     this.network = network;
     this.description = description;
 
+    console.log('contract description:', description);
+    for (const method of description.methods.filter(m => m.networks.includes(network))) {
+      Object.defineProperty(this.methods, method.name, {
+        writable: false,
+        enumerable: true,
+        value: method.readonly
+          ? ((provider: Provider, name: string) => {
+              return async (...args: Array<any>): Promise<any> => {
+                const params = args[0];
+                const options = args.length > 0 ? args[1] : undefined;
+                return provider.call(this.network, name, method.name, params, options);
+              }
+            })(this.provider, method.name)
+          : ((provider: Provider, name: string) => {
+            return async (...args: Array<any>): Promise<any> => {
+                const params = args[0];
+                const options = args.length > 0 ? args[1] : undefined;
+                return provider.transact(this.network, name, method.name, params, options);
+            }
+          })(this.provider, this.name)
+      });
+    }
+
     return new Proxy(this, {
       get: (target, prop, receiver) => {
         if (typeof(prop) === 'symbol' || prop in target) {
           return Reflect.get(target, prop, receiver);
         }
-
-        return target.description.methods.find((m) => m.name === prop);
+        if (prop in target.methods) {
+          return target.methods[prop];
+        }
+        return undefined;
       },
-
       has: (target, prop) => {
-        return true;
+        if (passProperties.indexOf(<string>prop) >= 0) {
+          return Reflect.has(target, prop);
+        }
+        return Reflect.has(target, prop);
       }
     });
   }
+}
+
+export class Contract extends BaseContract {
+  [ name: string ]: any;
 }

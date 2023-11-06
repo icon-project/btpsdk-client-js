@@ -1,5 +1,8 @@
 {
   "compilerOptions": {
+    //"skipLibCheck": false,
+    //"noEmitOnError": true,
+
     "allowSyntheticDefaultImports": true,
     "declaration": true,
     "declarationMap": true,
@@ -7,6 +10,7 @@
     "forceConsistentCasingInFileNames": true,
     "importHelpers": true,
     "lib": [
+      "dom", // For refer to `RequestInit` on `fetch` API
       "es2020",
       "es6"
     ],
@@ -14,7 +18,7 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
     "noImplicitReturns": true,
-    "noImplicitThis": false,
+    "noImplicitThis": true,
     "noUnusedLocals": false,
     "rootDir": "../src",
     "strict": true,

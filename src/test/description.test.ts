@@ -3,9 +3,6 @@ import assert from "assert";
 import {
   read,
 } from "./utils";
-import {
-  DefaultProvider,
-} from "../provider/provider";
 
 import {
   Service,

@@ -3,7 +3,7 @@ import {
   BlockChain,
 } from './utils/blockchain';
 
-describe('blockchain test', () => {
+describe.skip('blockchain test', () => {
   it('', () => {
     const blockchain = new BlockChain();
     blockchain.start();

@@ -1,27 +1,28 @@
-import { assert } from "../utils/errors";
+import {
+  assert,
+  BTPError,
+  ERR_TIMEOUT,
+} from "../error/index";
+
 import type {
   Provider,
   Receipt,
   Network,
 } from "./types";
-import {
-  BTPError,
-} from "../utils/errors";
+
+import { getLogger } from '../utils/log';
+const log = getLogger('transaction');
 
 export class PendingTransaction {
   #provider: Provider;
   #network: Network;
-  #id: string;
-  #receipt: Receipt | null= null;
+  readonly id: string;
+  #receipt: Receipt | null = null;
 
   constructor(provider: Provider, network: Network, id: string) {
     this.#provider = provider;
     this.#network = network;
-    this.#id = id;
-  }
-
-  get id() {
-    return this.#id;
+    this.id = id;
   }
 
   async wait(status: 'created' | 'finalized' = 'created', timeout: number = 0): Promise<Receipt> {
@@ -29,38 +30,36 @@ export class PendingTransaction {
     return new Promise(async (resolve, reject) => {
       if (timeout > 0) {
         setTimeout(() => {
-          reject(new Error('timeout'));
+          reject(new BTPError(ERR_TIMEOUT));
         }, timeout);
       }
 
       if (this.#receipt == null) {
         try {
-          this.#receipt = await this.#provider.getTransactionResult(this.#network, this.#id);
+          this.#receipt = await this.#provider.getTransactionResult(this.#network, this.id);
         } catch (error) {
-          assert(BTPError.is(error), 'TODO handle transaction result error');
+          assert(error instanceof BTPError, 'TODO handle transaction result error');
           throw error;
         }
       }
 
       if (status === 'created') {
-        resolve(this.#receipt!!);
+        resolve(this.#receipt!);
       } else if (status === 'finalized') {
         const onFinalized = async (error: BTPError) => {
           if (error != null) {
             reject(error);
           } else {
-            resolve(this.#receipt!!);
+            resolve(this.#receipt!);
           }
         };
 
         this.#provider.once('block', {
           network: this.#network,
           status,
-          id: this.#receipt!!.block.id,
-          height: this.#receipt!!.block.height
+          id: this.#receipt!.block.id,
+          height: this.#receipt!.block.height
         }, onFinalized);
-      } else {
-        reject(new Error('??'))
       }
     });
   }

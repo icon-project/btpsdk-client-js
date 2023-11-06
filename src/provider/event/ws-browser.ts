@@ -1,8 +1,8 @@
-declare global {
-  interface Window { }
-  const window: Window;
-  const self: Window;
-}
+// declare global {
+//   interface Window { }
+//   const window: Window;
+//   const self: Window;
+// }
 
 function getGlobal(): any {
   if (typeof self !== 'undefined') { return self; }

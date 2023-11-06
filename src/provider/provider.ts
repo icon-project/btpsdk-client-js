@@ -1,92 +1,96 @@
 import type {
   Provider,
-  EventFilter,
   Network,
   NetworkType,
-  FetchOpts,
   Receipt,
   CallOpts,
   TransactOpts,
   EventType,
-  Signer,
 } from "./types";
+
+import {
+  EventEmitter,
+  EventFilter,
+  BlockFinalityEmitter,
+  LogEmitter,
+} from './event/index';
 
 import {
   PendingTransaction,
 } from "./transaction";
 
-import {
-  BTPError,
-  ERRORS,
-} from "../utils/errors";
-
-import {
-  EventEmitter,
-
-  isLogFilter,
-  isBlockFilter,
-} from "./events";
-
-import { query } from "../utils";
-
-import {
-  FetchClient,
-} from "./client";
+import { qs } from "../utils/index";
 
 import type {
   Listener,
-  ServiceDescription,
 } from "../service/types";
 
+import { formatReceipt } from './formatter';
+
 import {
-  BaseService,
   Service
 } from "../service/service";
 
-import {
-  BlockFinalityEmitter,
-  LogEmitter,
-} from "./events";
+import { HttpClient, DefaultOptions } from './request';
+
+export interface FetchOptions {
+  cache: "default" | "no-store" | "reload" | "no-cache" | "force-cache" | "only-if-cached"
+  credentials: "omit" | "same-origin" | "include";
+  headers: Record<string, string>;
+  integrity: string;
+  keepalive: boolean;
+  method: string;
+  mode: "navigate" | "same-origin" | "no-cors" | "cors";
+  redirect: "follow" | "error" | "manual";
+}
 
 import { OpenAPIDocument } from "../service/description";
+import { merge } from '../utils/index';
 
-export class DefaultProvider implements Provider {
+import {
+  transports,
+  format,
+  Logger
+} from 'winston';
+import { getLogger } from '../utils/log';
+
+let log;
+
+export class BTPProvider implements Provider {
+  #baseUrl: string;
+  #transactOpts: TransactOpts;
+  #client: HttpClient;
   #emitters: Map<'log' | 'block', EventEmitter> = new Map();
-  protected fetcher: FetchClient;
-  #url: string;
-  readonly signer: Signer;
-  constructor(url: string, signer: Signer) {
-    this.#url = url;
-    let opts: FetchOpts = {
-      url,
-    };
-    this.signer = signer;
-    this.fetcher = new FetchClient(opts);
+
+  constructor(baseUrl: string, options?: TransactOpts & DefaultOptions) {
+    this.#baseUrl = baseUrl;
+    this.#transactOpts = options ?? {};
+    this.#client = new HttpClient(baseUrl, merge(options ?? {}, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }));
+    log = getLogger('provider');
+    log.info('haha');
   }
 
   #networks: Map<string, string> = new Map();
 
-  async _serviceInfos(): Promise<Array<{ name: string, networks: Array<Network> }>> {
-    const decoder = new TextDecoder();
-    const resp = await this.fetcher.send({
-      path: '/api',
-      method: 'GET',
-      headers: {},
-      body: null
-    });
-
-    console.log('decoder decode:',decoder.decode(resp.body));
-    const _infos: Array<{
+  async #services(): Promise<Array<{ name: string, networks: Array<Network> }>> {
+    const response = await this.#client.request<Array<{
       name: string,
       networks: {
         [name: string]: NetworkType
       }
-    }> = JSON.parse(decoder.decode(resp.body));
+    }>>('/api', {
+      method: 'GET',
+    });
 
     const infos: Array<{
       name: string,
       networks: Array<Network>
-    }> = _infos.map(({ name, networks }) => {
+    }> = response.map(({ name, networks }) => {
       return {
         name,
         networks: Object.entries(networks).map(([name, type]) => {
@@ -97,20 +101,17 @@ export class DefaultProvider implements Provider {
     return infos;
   }
 
-  async _document(): Promise<any> {
-    const resp = await this.fetcher.send({
-      path: '/api-docs',
+  async #document(): Promise<any> {
+    return await this.#client.request('/api-docs', {
       method: 'GET',
       headers: {
         'content-type': 'application/json'
-      },
-      body: null
+      }
     });
-    return JSON.parse(new TextDecoder().decode(resp.body));
   }
 
   async networks(): Promise<Array<Network>> {
-    const doc = await this._document();
+    const doc = await this.#document();
     return doc.tags.filter((tag: any) => tag.description.startsWith('NetworkType:'))
       .map((tag: any) => {
         return /\{([^)]+)\}/.exec(tag.description)!![1]
@@ -119,9 +120,8 @@ export class DefaultProvider implements Provider {
   }
 
   async services(): Promise<Array<Service>> {
-    const decoder = new TextDecoder();
-    const infos = await this._serviceInfos();
-    const doc = OpenAPIDocument.from(await this._document());
+    const infos = await this.#services();
+    const doc = OpenAPIDocument.from(await this.#document());
     return doc.services(infos.map(info => info.name)).map(description => {
       const info = infos.find(({ name }) => name === description.name);
       if (info == null) {
@@ -132,9 +132,9 @@ export class DefaultProvider implements Provider {
   }
 
   async service(name: string): Promise<Service> {
-    const doc = OpenAPIDocument.from(await this._document());
+    const doc = OpenAPIDocument.from(await this.#document());
     const description = doc.service(name);
-    const infos = await this._serviceInfos();
+    const infos = await this.#services();
     const info = infos.find(({ name }) => name === description.name);
     if (info == null) {
       throw new Error("no service info");
@@ -142,94 +142,86 @@ export class DefaultProvider implements Provider {
     return new Service(this, description);
   }
 
-  async transact(network: Network | string, service: string, method: string, params: { [key: string]: any }, options: TransactOpts): Promise<PendingTransaction> {
-    console.log('provider transact options:', options);
-    const encoder = new TextEncoder();
+  // { signer: new SignerImpl() }
+  // { from: '...', signature: '...' }
 
-    if (options.from != null) {
-      const resp = await this.fetcher.send({
-        path: `/api/${service}/${method}`,
-        method: 'POST',
-        headers: {},
-        body: encoder.encode(JSON.stringify({
-          network: typeof(network) === 'string' ? network : network.name,
-          params,
-          options,
-        }))
-      });
-
-      const enctx = JSON.parse(new TextDecoder().decode(resp.body));
-      options.signature = await this.signer.sign('eth', enctx);
+  async transact(network: string | Network, service: string, method: string, params: { [key: string]: any }, options: TransactOpts): Promise<PendingTransaction> {
+    if (typeof(network) == 'string') {
+      network = {
+        name: network,
+        type: 'bsc'
+      }
+    }
+    console.log(`provider::transact{ ${network}, ${service}, ${method}, ${params}, ${options} }`);
+    if (!!options.from != !!options.signature) {
+      throw new Error('both `from` and `signautre` must be null or have values');
     }
 
-    const resp = await this.fetcher.send({
-      path: `/api/${service}/${method}`,
+    const signer = options.signer || this.#transactOpts?.signer;
+    if (signer != null && options.from == null && options.signature == null) {
+      const from = await signer!.address(network.type);
+      const response = await this.#client.request<string>(`/api/${service}/${method}`, {
+        method: 'POST',
+        body: JSON.stringify({
+          network: network.name,
+          params,
+          options: Object.assign({ ...options }, { from }),
+        })
+      });
+
+      const rawtx = response;
+      options.from = from;
+      options.signature = await signer!.sign(network.type, rawtx);
+    }
+
+    const response = await this.#client.request<string>(`/api/${service}/${method}`, {
       method: 'POST',
-      headers: {},
-      body: encoder.encode(JSON.stringify({
+      body: JSON.stringify({
         network: typeof(network) === 'string' ? network : network.name,
         params,
         options
-      })),
+      }),
     });
 
-    const txid = JSON.parse(new TextDecoder().decode(resp.body));
-    return new PendingTransaction(this, typeof(network) === 'string' ? {
-      name: network,
-      // TODO
-      type: 'icon',
-    } : network, txid);
-
+    const txid = response;
+    return new PendingTransaction(this, network, txid);
   }
 
   // network=icon_test&params[_dst]=string
-  async call(network: Network | string, service: string, method: string, params: { [key: string]: any }, opts: CallOpts): Promise<any> {
-    let qs = query.stringify({
-      network: typeof(network) === 'string' ? network : network.name,
+  async call<T = any>(network: Network | string, service: string, method: string, params: { [key: string]: any }, opts: CallOpts): Promise<any> {
+    console.log('this networks:', (await this.networks()).find(({ name }) => network === name));
+    if (typeof(network) === 'string') {
+      const target = (await this.networks()).find(({ name }) => network === name);
+      if (target != null) {
+        network = target!;
+      } else {
+        throw new Error('no network');
+      }
+    }
+    let query = qs({
+      network: (network as Network).name,
       params,
     });
-    const resp = await this.fetcher.send({
-      path: `/api/${service}/${method}?${qs}`,
-      method: 'GET',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: null,
+    console.log('query:', query);
+    return await this.#client.request<T>(`/api/${service}/${method}?${query}`, {
+      method: 'GET'
     });
-
-    return JSON.parse(new TextDecoder().decode(resp.body));
   }
 
   async getTransactionResult(network: Network, id: string): Promise<Receipt> {
-    let qs = query.stringify({ network: network.name });
-    const resp = await this.fetcher.send({
-      path: `/api/result/${id}?${qs}`,
-      method: 'GET',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: null,
+    console.debug('provider::getTransactionResult', network, id);
+    let query = qs({ network: network.name });
+    const response = await this.#client.request(`/api/result/${id}?${query}`, {
+      method: 'GET'
     });
-    const receipt = JSON.parse(new TextDecoder().decode(resp.body));
-    return {
-      block: {
-        id: receipt.BlockHash,
-        height: receipt.BlockHeight
-      }
-    }
+    return formatReceipt(network.type, response);
   }
 
   async getBlockFinality(network: string, id: string, height: number): Promise<boolean> {
-    const qs = query.stringify({ network, height });
-    const resp = await this.fetcher.send({
-      path: `/api/finality/${id}?${qs}`,
-      method: 'GET',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: null,
+    console.log(`get block finality: ${network} ${id} ${height}`);
+    const query = qs({ network, height });
+    return await this.#client.request<boolean>(`/api/finality/${id}?${query}`, {
     });
-    return JSON.parse(new TextDecoder().decode(resp.body));
   }
 
   on(type: 'log', filter: EventFilter, listener: Listener): this {
@@ -238,7 +230,7 @@ export class DefaultProvider implements Provider {
   }
 
   once(type: EventType, filter: EventFilter, listener: Listener): this {
-    const emitter = this.#getEmitter(type, filter, listener).once(type, filter, listener);
+    this.#getEmitter(type, filter, listener).once(type, filter, listener);
     return this;
   }
 
@@ -252,7 +244,7 @@ export class DefaultProvider implements Provider {
     if (!this.#emitters.has(type)) {
       switch (type) {
         case 'log': {
-          emitter = new LogEmitter(this.#url.replace('http', 'ws'));
+          emitter = new LogEmitter(this.#baseUrl.replace('http', 'ws'));
           break
         }
         case 'block': {

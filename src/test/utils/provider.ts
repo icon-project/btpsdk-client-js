@@ -24,8 +24,8 @@ import {
 
 import {
   BTPError,
-  ERRORS,
-} from "../../utils/errors";
+  ERR_INCONSISTENT_BLOCK,
+} from "../../error/index";
 
 import {
   BlockChain,
@@ -79,7 +79,7 @@ export class Provider implements IProvider {
         if (finalized.id == id) {
           resolve(true);
         } else {
-          reject(new BTPError(ERRORS.NETWORK.INCONSISTENT_BLOCK));
+          reject(new BTPError(ERR_INCONSISTENT_BLOCK));
         }
       }
     });

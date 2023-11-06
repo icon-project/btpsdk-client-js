@@ -2,7 +2,6 @@
   "name": "@btp/web-signer",
   "version": "1.0.0",
   "description": "",
-  "main": "./lib.cjs/index.js",
   "module": "./lib.esm/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -14,9 +13,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@metamask/detect-provider": "^2.0.0",
     "@metamask/sdk": "^0.10.0",
-    "btp": "file:../../.."
+    "btp": "file:../../..",
+    "ethers": "^6.8.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.31"

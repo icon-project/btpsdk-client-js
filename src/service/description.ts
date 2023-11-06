@@ -1,4 +1,7 @@
-import { assert } from "../utils/errors";
+import {
+  assert
+} from "../error/index";
+
 import type {
   ServiceDescription,
 } from "./types";

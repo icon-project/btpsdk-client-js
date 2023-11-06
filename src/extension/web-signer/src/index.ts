@@ -5,8 +5,6 @@ import {
   ERRORS
 } from "btp";
 
-import detect from "@metamask/detect-provider";
-
 import {
   SDKProvider,
   MetaMaskSDK
@@ -17,82 +15,79 @@ export class WebMetamaskSigner implements Signer {
 
   constructor() {
     this.#metamask = new MetaMaskSDK({
+      preferDesktop: false,
+      storage: {
+        enabled: true,
+      },
+      injectProvider: true,
+      forceInjectProvider: false,
+      enableDebug: true,
+      shouldShimWeb3: true,
       dappMetadata: {
         name: '',
-        url: ''
+        url: '',
       },
-      enableDebug: false,
-      logging: {
-        developerMode: true,
-        sdk: true
-      }
+      i18nOptions: {
+        enabled: false,
+      },
     });
-
+    // {
+    //   dappMetadata: {
+    //     name: '',
+    //     url: ''
+    //   },
+    //   preferDesktop: true,
+    //   useDeeplink: true,
+    //   extensionOnly: false,
+    //   enableDebug: false,
+    //   logging: {
+    //     developerMode: true,
+    //     sdk: true
+    //   }
+    // });
   }
 
-  async address(): Promise<string> {
-    let accounts: Array<string> = [];
-    try {
-      console.log('try init ...');
-      await this.#metamask.init();
+  async init(): Promise<void> {
+    console.log('MetamaskSigner::init');
+    return new Promise(async (resolve, reject) => {
+      const accounts = await this.#metamask.connect();
+      if (accounts == null || (accounts as Array<string>).length <= 0) {
+        this.#metamask.getProvider().once('accountsChanged', (accounts: any) => {
+          if (accounts.length <= 0) {
+            reject(new Error('no avail accounts'));
+          } else {
+            resolve();
+          }
+        });
+      } else {
+        resolve();
+      }
+    });
+  }
 
-      const provider = this.#metamask.getProvider();
-      console.log('provider:', provider);
-      provider.on('accountsChagned', (accounts) => {
-        console.log('accountsChanged:', accounts);
-      });
-
-      provider.on('chainChanged', (chainId) => {
-        console.log('chainChanged:', chainId);
-      });
-
-      provider.on('connect', () => {
-        console.log('connect');
-      });
-
-      provider.on('disconnect', () => {
-        console.log('disconnect');
-      });
-
-      provider.on('message', (message) => {
-        console.log('message:', message);
-      });
-
-      //accounts = await this.#metamask.connect() as Array<string>;
-      //console.log('accounts::connect:', accounts);
-      console.log('init complete...');
-    } catch (error) {
-      console.log('CATCH METAMASK INIT ERR:', error);
-    }
-
-    // if (accounts.length <= 0) {
-    //   await this.#metamask.getProvider().request({
-    //     method: 'wallet_requestPermissions',
-    //     params: [{ eth_accounts: {} }]
-    //   });
-    // }
-
-    accounts = await this.#metamask.getProvider().request({
-      method: 'eth_accounts'
-    }) as Array<string>;
-    console.log('accounts:eth_accounts:', accounts);
+  async address(type: string): Promise<string> {
+    console.log('WebMetamaskSigner::address()');
+    const provider = this.#metamask.getProvider();
+    const accounts = await provider.request({ method: 'eth_accounts' }) as Array<string>;
     if (accounts.length <= 0) {
-      throw new Error("no avail account")
+      throw new Error('no avail accounts');
     }
     return accounts[0];
   }
 
   async sign(type: string, message: string): Promise<string> {
-    //const provider = await detect() as SDKProvider;
-    //const provider = createMetaMaskProvider();
-    const address = await this.address();
-    const signature = this.#metamask.getProvider().request({
-    //const signature = await provider.request({
-      method: 'eth_sign',
-      params: [ address, message ]
-    });
-    console.log('signature:', signature);
-    throw new Error('TODO: WebMetamaskSigner::sign');
+    console.log('WebMetamaskSigner::sign()');
+    const provider = this.#metamask.getProvider();
+    const address = await this.address(type);
+    try {
+      const signature = await this.#metamask.getProvider().request({
+        method: 'eth_sign',
+        params: [ address, '0x1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8' ]
+      });
+      return signature as string;
+    } catch (error) {
+      throw new Error(error.message);
+    }
   }
 }
 
@@ -103,24 +98,172 @@ function getGlobal(): any {
   throw new Error('unable to locate global object');
 }
 
-
 export class WebHanaSigner implements Signer {
-  async address(): Promise<string> {
+  #signers: Array<{ alias: Array<string>, instance: Signer }>;
+  constructor() {
+    this.#signers = [
+      {
+        alias: [
+          'icon'
+        ],
+        instance: new WebIconHanaSigner(),
+      }, {
+        alias: [
+          'evm',
+          'eth2',
+          'bsc'
+        ],
+        instance: new WebEvmHanaSigner(),
+      }
+    ]
+  }
+
+  #signer(type: string): Signer {
+    return this.#signers.find(signer => signer.alias.includes(type))?.instance
+      ?? ((): any => { throw new Error('') })();
+  }
+
+  async init(): Promise<void> {
+    await Promise.all(this.#signers.map((signer) => {
+      return signer.instance.init();
+    }));
+  }
+
+  async address(type: string): Promise<string> {
+    return this.#signer(type).address(type);
+  }
+
+  async sign(type: string, message: string): Promise<string> {
+    console.log('WebHanaSigner::sign()');
+    return this.#signer(type).sign(type, message);
+  }
+}
+
+// test with Hana Wallet v2.14.5
+export class WebIconHanaSigner implements Signer {
+  #signer: Map<string, Signer> = new Map();
+
+  async init(): Promise<void> {
+    console.log('WebIconHanaSigner::init()');
     return new Promise((resolve, reject) => {
       const global = getGlobal();
-      const dbg_ev = global.dispatchEvent(new CustomEvent('ICONEX_RELAY_REQUEST', {
-        detail: { type: 'REQUEST_ADDRESS' }
+      global.dispatchEvent(new CustomEvent('ICONEX_RELAY_REQUEST', {
+        detail: { type: 'REQUEST_HAS_ADDRESS' }
       }));
-      console.log('dispatch event ret:', dbg_ev);
 
-      globalThis.addEventListener('ICONEX_RELAY_RESPONSE', (ev: any) => {
-        console.log('RESPONSE ev:', ev);
+      let timer = setTimeout(() => {
+        reject(new Error('timeout iconex response'));
+      }, 3000);
+      function fn (ev: any) {
+        clearTimeout(timer);
+        console.log('ready to using icon wallet');
+        resolve();
+      }
+      global.addEventListener('ICONEX_RELAY_RESPONSE', fn, { once: true });
+    });
+  }
+
+  async address(type: string): Promise<string> {
+    console.log('WebIconHanaSigner::address()');
+    return new Promise((resolve, reject) => {
+      const global = getGlobal();
+      if (!global.dispatchEvent(new CustomEvent('ICONEX_RELAY_REQUEST', {
+        detail: { type: 'REQUEST_ADDRESS' }
+      }))) {
+        return reject(new Error('fail to dispatch `ICONEX_RELAY_REQUEST::ADDRESS`'));
+      }
+
+      const fn = (ev: any) => {
+        console.log('got address event:', ev);
+        if (ev.detail.type !== 'RESPONSE_ADDRESS') {
+          console.log('ignore unknown event1:', ev);
+          return;
+        }
+        global.removeEventListener('ICONEX_RELAY_RESPONSE', fn);
         resolve(ev.detail.payload);
-      }, { once: true });
+      };
+
+      global.addEventListener('ICONEX_RELAY_RESPONSE', fn);
     });
   }
 
   async sign(type: string, message: string): Promise<string> {
-    throw new Error('');
+    console.log('WebIconHanaSigner::sign()');
+    const global = getGlobal();
+    return new Promise(async (resolve, reject) => {
+      const address = await this.address(type);
+      if (!global.dispatchEvent(new CustomEvent('ICONEX_RELAY_REQUEST', {
+        detail: {
+          type: 'REQUEST_SIGNING',
+          payload: {
+            from: address,
+            hash: '9babe5d2911e8e42dfad72a589202767f95c6fab49523cdc16279a7b8f82eab2',
+          }
+        }
+      }))) {
+        return reject(new Error('fail to dispatch `ICONEX_RELAY_REQUEST::SIGNING'));
+      }
+
+      global.addEventListener('ICONEX_RELAY_RESPONSE', function fn (ev: any) {
+        const { type, payload } = ev.detail;
+        if (['RESPONSE_SIGNING', 'CANCEL_SIGNING'].includes(type)) {
+          global.removeEventListener('ICONEX_RELAY_RESPONSE', fn);
+          return type === 'RESPONSE_SIGNING' ? resolve(payload) : reject(new Error('UserAbort'));
+        }
+      });
+    });
+  }
+}
+
+export class WebEvmHanaSigner implements Signer {
+  #signer: Map<string, Signer> = new Map();
+
+  async init(): Promise<void> {
+    console.log('WebEvmHanaSigner::init()');
+    return new Promise((resolve, reject) => {
+      // NOTE:) apis of provider are not working when no connected evm chains,
+      // even if the provider is exists
+      const provider = getGlobal().hanaWallet?.ethereum;
+      console.log('evm provider:', provider);
+      if (provider != null) {
+        console.log('ready to using evm wallet');
+        resolve();
+      } else {
+        reject(new Error('no evm provider on hana wallet'));
+      }
+    });
+  }
+
+  // strategy method for retrieve one of a number of addresses
+  protected _elect(candidates: string | Array<string>): string {
+    if (typeof(candidates) === 'string') {
+      return candidates;
+    } else {
+      return candidates[0];
+    }
+  }
+
+  async address(type: string): Promise<string> {
+    console.log('WebEvmHanaWallet::address()');
+    const provider = getGlobal().hanaWallet.ethereum;
+    const addresses = await provider.request( { method: 'eth_requestAccounts' });
+    if (addresses.length <= 0) {
+      throw new Error('no avail accounts');
+    }
+    return this._elect(addresses);
+  }
+
+  async sign(type: string, message: string): Promise<string> {
+    console.log('WebEvmHanaSigner::sign()');
+    const provider = getGlobal().hanaWallet.ethereum;
+    const signature = await provider.request({
+      method: 'eth_sign',
+      params: [
+        await this.address(type),
+        '0x1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8'
+      ]
+    });
+    console.log('signature:', signature);
+    return signature as string;
   }
 }

@@ -3,6 +3,10 @@ import type {
 } from "./transaction";
 
 import type {
+  EventEmitter,
+} from './event';
+
+import type {
   ServiceDescription,
   Listener,
 } from "../service/types";
@@ -10,7 +14,7 @@ import type {
 import { Service } from "../service/service";
 
 
-export type NetworkType = 'icon' | 'eth';
+export type NetworkType = 'icon' | 'eth2' | 'bsc';
 
 export interface Network {
   name: string;
@@ -21,40 +25,25 @@ export {
   PendingTransaction,
 };
 
-export type EventFilter = LogFilter | BlockFilter;
-
 export type EventType = 'log' | 'block';
 
-export interface LogFilter {
-  network: string | Network;
-  service: string;
-  event: {
-    name: string;
-    params?: Map<string, any> | Array<Map<string, any>>;
-  }
-}
-
-export interface BlockFilter {
-  network: string | Network;
-  status: 'finalized',
-  id: string;
-  height: number;
-}
-
-export interface Provider {
+export interface Provider extends EventEmitter {
   services(): Promise<Array<Service>>;
   service(nameOrDesc: string | ServiceDescription): Promise<Service>;
-  transact(network: Network | string, service: string, method: string, params: { [key: string]: any }, opts: TransactOpts): Promise<PendingTransaction>;
+  transact(network: Network | string, service: string, method: string, params: { [key: string]: any }, opts?: TransactOpts): Promise<PendingTransaction>;
   call(network: Network | string, service: string, method: string, params: { [key: string]: any }, opts: CallOpts): Promise<any>;
   getTransactionResult(network: Network, id: string): Promise<Receipt>;
   getBlockFinality(network: string, id: string, height: number): Promise<boolean>;
-  on(type: 'log', filter: EventFilter, listener: Listener): this;
-  once(type: EventType, filter: EventFilter, listener: Listener): this;
-  off(type: EventType, listener?: Listener): this;
+  // on(type: 'log', filter: EventFilter, listener: Listener): this;
+  // once(type: EventType, filter: EventFilter, listener: Listener): this;
+  // off(type: EventType, listener?: Listener): this;
 }
 
 export interface Signer {
-  address(): Promise<string>;
+  init(): Promise<void>;
+  supports(type: string): boolean;
+  supports(): Array<string>;
+  address(type: string): Promise<string>;
   sign(type: string, message: string): Promise<string>;
 }
 
@@ -76,6 +65,7 @@ export interface FetchRequest {
 export type TransactOpts = IcxTransactOpts | EthTransactOpts;
 
 export interface BaseTransactOpts {
+  signer?: Signer;
   from?: string;
   signature?: string;
 }

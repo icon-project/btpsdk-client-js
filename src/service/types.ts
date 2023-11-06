@@ -27,6 +27,7 @@ export interface ServiceDescription {
 
 export interface MethodDescription {
   name: string;
+  networks: Array<string>;
   // TODO add properties for validating value
   inputs: Array<string>;
   readonly: boolean;
