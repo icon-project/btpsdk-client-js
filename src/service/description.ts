@@ -82,9 +82,6 @@ export class OpenAPIDocument {
         assert(false);
       }
       props.networks.forEach((n: string) => networks.add(n));
-
-      const total = _networks(this.#doc);
-
       return {
         name: _name.slice(prefix.length, _name.length),
         ...props

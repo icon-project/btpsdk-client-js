@@ -9,7 +9,7 @@ import {
   merge
 } from './index';
 
-const { combine, timestamp, label, printf } = winston.format;
+const { combine, timestamp, printf } = winston.format;
 
 const format = (label: string) => {
   return combine(
@@ -19,7 +19,7 @@ const format = (label: string) => {
   );
 }
 
-const LOG_LEVEL = process.env.BTP_LOG_LEVEL;
+const LOG_LEVEL = process.env.BTP_LOG_LEVEL || 'debug';
 
 let OPTIONS = {
   level: LOG_LEVEL,

@@ -11,22 +11,36 @@ import {
 export type DefaultOptions = Pick<RequestInit, 'cache' | 'credentials' | 'headers' | 'integrity' |
   'keepalive' | 'method' | 'mode' | 'redirect' | 'referrer' | 'referrerPolicy' | 'signal'>;
 
-export class HttpClient {
-  readonly baseUrl: string;
+export type HttpRequestCreator = {
+  baseUrl: string;
+  (path: string, options?: RequestInit): Response;
+}
+
+export interface HttpProvider {
+  baseUrl: string;
+  request<T>(path: string, options?: RequestInit): Promise<T>;
+}
+
+export class DefaultHttpProvider implements HttpProvider {
+  #baseUrl: string | HttpRequestCreator;
   readonly options: DefaultOptions;
 
-  constructor(baseUrl: string, options?: DefaultOptions) {
-    this.baseUrl = baseUrl.replace(/\/$/, '');
+  constructor(baseUrl: string | HttpRequestCreator, options?: DefaultOptions) {
+    this.#baseUrl = baseUrl;
     this.options = options ?? {};
   }
 
-  async request<T = { [ key: string ]: any }>(path: string, options?: RequestInit): Promise<T> {
+  get baseUrl() {
+    return typeof(this.#baseUrl) === 'string' ? this.#baseUrl : this.#baseUrl.baseUrl;
+  }
+
+
+  async request<T = { [key: string]: any }>(path: string, options?: RequestInit): Promise<T> {
     const opt = options != null ? merge(this.options, options) : this.options;
-    const response = await fetch(join(this.baseUrl, path), opt);
+    const response = typeof(this.#baseUrl) === 'string' ? await fetch(join(this.#baseUrl, path), opt) : await this.#baseUrl(path, opt);
     if (!response.ok) {
       throw new ServerRejectError({ code: response.status, message: await response.json() })
     }
-    return await response.json();
+    return response.json();
   }
-
 }

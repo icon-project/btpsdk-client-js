@@ -1,4 +1,4 @@
-import assert from "assert";
+//import assert from "assert";
 
 import {
   Provider as IProvider,
@@ -11,16 +11,16 @@ import {
 } from "../../provider";
 
 import {
+  EventListener,
+} from '../../provider/event';
+
+import {
   ServiceDescription,
 } from "../../service";
 
 import {
   Service,
 } from "../../service/service";
-
-import {
-  Listener,
-} from "../../service/types";
 
 import {
   BTPError,
@@ -85,15 +85,15 @@ export class Provider implements IProvider {
     });
   }
 
-  on(type: "log", filter: EventFilter, listener: Listener): this {
+  on(type: "log", filter: EventFilter, listener: EventListener): this {
     throw new Error("Method not implemented.");
   }
 
-  once(type: "log" | "block", filter: EventFilter, listener: Listener): this {
+  once(type: "log" | "block", filter: EventFilter, listener: EventListener): this {
     throw new Error("Method not implemented.");
   }
 
-  off(type: "log" | "block", listener?: Listener): this {
+  off(type: "log" | "block", listener?: EventListener): this {
     throw new Error("Method not implemented.");
   }
 

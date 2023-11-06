@@ -9,7 +9,6 @@ import {
   EventListener,
   LogFilter,
   WebSocketCreator,
-  WebSocketLike,
 } from './index';
 
 import {
@@ -19,7 +18,6 @@ import {
 import {
   BTPError,
   ERR_NOT_IMPLEMENTED,
-  ERR_UNKNOWN_NETWORK_TYPE,
 } from '../../error/index';
 
 export interface LogEvent {

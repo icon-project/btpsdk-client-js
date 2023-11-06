@@ -1,6 +1,7 @@
 import {
   Network,
 } from '../types';
+
 export type EventListener = (...args: Array<any>) => void;
 
 export type EventFilter = LogFilter | BlockFilter;

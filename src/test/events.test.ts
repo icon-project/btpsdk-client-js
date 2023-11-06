@@ -1,29 +1,17 @@
 import "mocha";
 import assert from "assert";
-import type {
-  Network,
-} from "../provider";
-
-import type {
-  EventFilter,
-  BlockFilter,
-} from '../provider/event';
 
 import {
   BlockFinalityEmitter,
-  LogEmitter,
+  // LogEmitter,
 } from "../provider";
-import { PendingTransaction } from "../provider/transaction";
-import { TransactOpts, CallOpts, Receipt } from "../provider/types";
 import {
   BTPError,
   ERR_INCONSISTENT_BLOCK
 } from "../error";
-import { OpenAPIDocument } from "../service/description";
 
 import { Provider } from "./utils/provider";
 import { BlockChain } from "./utils/blockchain";
-import { WebSocket as WebSock } from "./utils/ws";
 
 describe("Test events", () => {
   const blockchain = new BlockChain({ period: 10 });

@@ -1,4 +1,4 @@
-import mocha from 'mocha';
+import 'mocha';
 import {
   BlockChain,
 } from './utils/blockchain';

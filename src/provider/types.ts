@@ -8,7 +8,6 @@ import type {
 
 import type {
   ServiceDescription,
-  Listener,
 } from "../service/types";
 
 import { Service } from "../service/service";
@@ -34,9 +33,6 @@ export interface Provider extends EventEmitter {
   call(network: Network | string, service: string, method: string, params: { [key: string]: any }, opts: CallOpts): Promise<any>;
   getTransactionResult(network: Network, id: string): Promise<Receipt>;
   getBlockFinality(network: string, id: string, height: number): Promise<boolean>;
-  // on(type: 'log', filter: EventFilter, listener: Listener): this;
-  // once(type: EventType, filter: EventFilter, listener: Listener): this;
-  // off(type: EventType, listener?: Listener): this;
 }
 
 export interface Signer {

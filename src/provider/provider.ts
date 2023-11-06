@@ -9,6 +9,7 @@ import type {
 } from "./types";
 
 import {
+  EventListener,
   EventEmitter,
   EventFilter,
   BlockFinalityEmitter,
@@ -21,17 +22,24 @@ import {
 
 import { qs } from "../utils/index";
 
-import type {
-  Listener,
-} from "../service/types";
-
 import { formatReceipt } from './formatter';
 
 import {
   Service
 } from "../service/service";
 
-import { HttpClient, DefaultOptions } from './request';
+import {
+  HttpProvider,
+  DefaultHttpProvider,
+  DefaultOptions,
+  HttpRequestCreator,
+} from './request';
+
+import {
+  BTPError,
+  ERR_UNKNOWN_NETWORK_NAME,
+  ERR_UNKNOWN_SERVICE,
+} from '../error/index';
 
 export interface FetchOptions {
   cache: "default" | "no-store" | "reload" | "no-cache" | "force-cache" | "only-if-cached"
@@ -47,25 +55,22 @@ export interface FetchOptions {
 import { OpenAPIDocument } from "../service/description";
 import { merge } from '../utils/index';
 
-import {
-  transports,
-  format,
-  Logger
-} from 'winston';
 import { getLogger } from '../utils/log';
 
-let log;
+let log = getLogger('provider');
 
 export class BTPProvider implements Provider {
   #baseUrl: string;
   #transactOpts: TransactOpts;
-  #client: HttpClient;
+  #client: HttpProvider;
   #emitters: Map<'log' | 'block', EventEmitter> = new Map();
 
-  constructor(baseUrl: string, options?: TransactOpts & DefaultOptions) {
-    this.#baseUrl = baseUrl;
+  constructor(creator: HttpRequestCreator, options?: TransactOpts & DefaultOptions);
+  constructor(baseUrl: string, options?: TransactOpts & DefaultOptions);
+  constructor(baseUrlOrCreator: string | HttpRequestCreator, options?: TransactOpts & DefaultOptions) {
+    this.#baseUrl = typeof(baseUrlOrCreator) === 'string' ? baseUrlOrCreator : baseUrlOrCreator.baseUrl;
     this.#transactOpts = options ?? {};
-    this.#client = new HttpClient(baseUrl, merge(options ?? {}, {
+    this.#client = new DefaultHttpProvider(baseUrlOrCreator, merge(options ?? {}, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -75,17 +80,13 @@ export class BTPProvider implements Provider {
     log.info('haha');
   }
 
-  #networks: Map<string, string> = new Map();
-
   async #services(): Promise<Array<{ name: string, networks: Array<Network> }>> {
     const response = await this.#client.request<Array<{
       name: string,
       networks: {
         [name: string]: NetworkType
       }
-    }>>('/api', {
-      method: 'GET',
-    });
+    }>>('/api');
 
     const infos: Array<{
       name: string,
@@ -102,12 +103,7 @@ export class BTPProvider implements Provider {
   }
 
   async #document(): Promise<any> {
-    return await this.#client.request('/api-docs', {
-      method: 'GET',
-      headers: {
-        'content-type': 'application/json'
-      }
-    });
+    return await this.#client.request('/api-docs');
   }
 
   async networks(): Promise<Array<Network>> {
@@ -142,16 +138,14 @@ export class BTPProvider implements Provider {
     return new Service(this, description);
   }
 
-  // { signer: new SignerImpl() }
-  // { from: '...', signature: '...' }
-
   async transact(network: string | Network, service: string, method: string, params: { [key: string]: any }, options: TransactOpts): Promise<PendingTransaction> {
     if (typeof(network) == 'string') {
-      network = {
-        name: network,
-        type: 'bsc'
-      }
+      network = ((await this.#services()).find(info => info.name === service) ??
+        (() => { throw new BTPError(ERR_UNKNOWN_SERVICE, { service }); })()).networks.find(net => net.name === network) ??
+        (() => { throw new BTPError(ERR_UNKNOWN_NETWORK_NAME, { name: network }); })();
+      log.debug('conv network name to network instance:', network);
     }
+
     console.log(`provider::transact{ ${network}, ${service}, ${method}, ${params}, ${options} }`);
     if (!!options.from != !!options.signature) {
       throw new Error('both `from` and `signautre` must be null or have values');
@@ -177,7 +171,7 @@ export class BTPProvider implements Provider {
     const response = await this.#client.request<string>(`/api/${service}/${method}`, {
       method: 'POST',
       body: JSON.stringify({
-        network: typeof(network) === 'string' ? network : network.name,
+        network: network.name,
         params,
         options
       }),
@@ -189,57 +183,53 @@ export class BTPProvider implements Provider {
 
   // network=icon_test&params[_dst]=string
   async call<T = any>(network: Network | string, service: string, method: string, params: { [key: string]: any }, opts: CallOpts): Promise<any> {
-    console.log('this networks:', (await this.networks()).find(({ name }) => network === name));
-    if (typeof(network) === 'string') {
-      const target = (await this.networks()).find(({ name }) => network === name);
-      if (target != null) {
-        network = target!;
-      } else {
-        throw new Error('no network');
-      }
+    if (typeof(network) == 'string') {
+      network = ((await this.#services()).find(info => info.name === service) ??
+        (() => { throw new BTPError(ERR_UNKNOWN_SERVICE, { service }); })()).networks.find(net => net.name === network) ??
+        (() => { throw new BTPError(ERR_UNKNOWN_NETWORK_NAME, { name: network }); })();
+      log.debug('conv network name to network instance:', network);
     }
+
     let query = qs({
       network: (network as Network).name,
       params,
     });
     console.log('query:', query);
-    return await this.#client.request<T>(`/api/${service}/${method}?${query}`, {
-      method: 'GET'
-    });
+    return await this.#client.request<T>(`/api/${service}/${method}?${query}`);
   }
 
   async getTransactionResult(network: Network, id: string): Promise<Receipt> {
     console.debug('provider::getTransactionResult', network, id);
     let query = qs({ network: network.name });
-    const response = await this.#client.request(`/api/result/${id}?${query}`, {
-      method: 'GET'
-    });
+    const response = await this.#client.request(`/api/result/${id}?${query}`);
     return formatReceipt(network.type, response);
   }
 
   async getBlockFinality(network: string, id: string, height: number): Promise<boolean> {
     console.log(`get block finality: ${network} ${id} ${height}`);
     const query = qs({ network, height });
-    return await this.#client.request<boolean>(`/api/finality/${id}?${query}`, {
-    });
+    return await this.#client.request<boolean>(`/api/finality/${id}?${query}`);
   }
 
-  on(type: 'log', filter: EventFilter, listener: Listener): this {
-    this.#getEmitter(type, filter, listener).on(type, filter, listener);
+  on(type: 'log', filter: EventFilter, listener: EventListener): this {
+    this.#getEmitter(type).on(type, filter, listener);
     return this;
   }
 
-  once(type: EventType, filter: EventFilter, listener: Listener): this {
-    this.#getEmitter(type, filter, listener).once(type, filter, listener);
+  once(type: EventType, filter: EventFilter, listener: EventListener): this {
+    this.#getEmitter(type).once(type, filter, listener);
     return this;
   }
 
-  off(type: EventType, listener?: Listener): this {
-    //this.#getEmitter(type, filter, listener).off(type, listener);
+  off(type: EventType): this;
+  off(type: EventType, listener: EventListener): this;
+  off(type: EventType, listener?: EventListener): this {
+    const emitter = this.#getEmitter(type);
+    listener == null ? emitter.off(type) : emitter.off(type, listener);
     return this;
   }
 
-  #getEmitter(type: EventType, filter: EventFilter, listener: Listener): EventEmitter {
+  #getEmitter(type: EventType): EventEmitter {
     let emitter: EventEmitter;
     if (!this.#emitters.has(type)) {
       switch (type) {

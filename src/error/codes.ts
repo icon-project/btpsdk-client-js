@@ -28,6 +28,16 @@ export const ERR_UNKNOWN_NETWORK_TYPE = {
   message: ({ type }: { type: string }) => `unknown network type - type(${type})`
 }
 
+export const ERR_UNKNOWN_NETWORK_NAME = {
+  code: 202,
+  message: ({ name }: { name: string }) => `unknown network name - name(${name})`
+}
+
+export const ERR_UNKNOWN_SERVICE = {
+  code: 203,
+  message: ({ service }: { service: string }) => `unknown service - service(${service})`
+}
+
 export const ERR_SERVER_REJECT = {
   code: 300,
   message: 'server response code(%statusCode%), message(%message%) for operation(%operation%)'

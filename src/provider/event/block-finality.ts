@@ -44,7 +44,8 @@ export class BlockFinalityEmitter implements EventEmitter {
   }
 
   once(name: string, filter: BlockFilter, listener: EventListener): this {
-    log.debug('++once', name, filter)
+    log.debug(`once(${name}, ${JSON.stringify(filter)})`);
+    //log.debug('++once', name, filter)
     const network = typeof(filter.network) === 'string'
       ? filter.network
       : (filter.network.name as string);
@@ -109,10 +110,10 @@ export class BlockFinalityEmitter implements EventEmitter {
   }
 
   async #start(network: string) {
-    log.debug('++#start');
+    log.debug(`start(${network})`);
     const pool = this.#pools.get(network);
     if (pool == null || pool.length == 0) {
-      log.warn('no target for monitoring - target network:', network);
+      log.info(`no available event target - target netowrk(${network})`);
       this.#stop(network);
       return;
     }
@@ -130,6 +131,7 @@ export class BlockFinalityEmitter implements EventEmitter {
     } finally {
       if (finality) {
         for (const listener of item.listeners) {
+          log.debug('notify events');
           listener(error);
         }
         pool.shift();
@@ -148,6 +150,7 @@ export class BlockFinalityEmitter implements EventEmitter {
   }
 
   #pause(network: string, handler: () => void) {
+    log.debug(`pause(${network})`);
     if (this.#timers.has(network)) {
       this.#stop(network);
       handler();

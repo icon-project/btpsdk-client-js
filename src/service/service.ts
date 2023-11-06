@@ -1,4 +1,3 @@
-import { assert } from "../error/index";
 import type {
   Provider,
   PendingTransaction,
@@ -11,52 +10,27 @@ import type {
 } from "./types";
 
 import type {
-  Listener,
-} from "./types";
+  EventListener,
+} from "../provider/event/index";
 
-import { getLogger } from '../utils/log';
-
-const log = getLogger('service');
+// import { getLogger } from '../utils/log';
+// const log = getLogger('service');
 
 const passProperties = [ 'then' ];
 
-const resolver = {
-  writable: (args: Array<any>): { network: string, params: { [key: string]: any }, options: TransactOpts } => {
-
-    assert(args.length >= 1 && typeof(args[0]) === 'string');
-    return {
-      network: args[0],
-      params: args[1],
-      options: args.length > 2 ? args[2] : {}
-    };
-  },
-  readable: (args: Array<any>): { network: string, params: { [key: string]: any }, options: CallOpts } => {
-    return {
-      network: args[0],
-      params: args[1],
-      options: args.length > 3 ? args[2] : undefined
-    };
+function resolveCallArgs(args: Array<any>): { network: string, params: { [key: string]: any }, options: CallOpts } {
+  return {
+    network: args[0],
+    params: args[1],
+    options: args.length > 2 ? args[2] : undefined
   }
 }
 
-const builder = {
-  writable: function (owner: BaseService, method: string) {
-    return async function (...args: Array<any>): Promise<PendingTransaction> {
-      log.debug('transact arguments:', args);
-      // TODO validate params
-      const { network, params, options } = resolver.writable(args);
-      log.debug(`resolved arguments: network(${network}) params(${params}) options(${options})`);
-      return owner.provider.transact(network, owner.name, method, params, options);
-    }
-  },
-
-  readable: function (owner: BaseService, method: string) {
-    return async function (...args: Array<any>): Promise<any> {
-      log.debug('call arguments:', args);
-      const { network, params, options } = resolver.readable(args);
-      log.debug(`resolved arguments: network(${network}) params(${params}) options(${options})`);
-      return owner.provider.call(network, owner.name, method, params, options);
-    }
+function resolveTransactArgs(args: Array<any>): { network: string, params: { [key: string]: any }, options: TransactOpts } {
+  return {
+    network: args[0],
+    params: args[1],
+    options: args.length > 2 ? args[2] : {}
   }
 }
 
@@ -72,14 +46,19 @@ export class BaseService {
     this.name = description.name;
     this.networks = description.networks;
     this.description = description;
-    console.log('networks:', description.networks);
     this.methods = {};
 
     for (const method of description.methods) {
       Object.defineProperty(this.methods, method.name, {
         writable: false,
         enumerable: true,
-        value: method.readonly ? builder.readable(this, method.name) : builder.writable(this, method.name)
+        value: !method.readonly ? async (...args: Array<any>): Promise<any> => {
+          const { network, params, options } = resolveTransactArgs(args);
+          return this.provider.transact(network, this.name, method.name, params, options);
+        } : async (...args: Array<any>): Promise<PendingTransaction> => {
+          const { network, params, options } = resolveCallArgs(args);
+          return this.provider.call(network, this.name, method.name, params, options);
+        }
       });
     }
 
@@ -102,9 +81,9 @@ export class BaseService {
     });
   }
 
-  on(network: string, name: string, listener: Listener): this;
-  on(network: string, name: string, filter: Map<string, any>, listener: Listener): this;
-  on(network: string, name: string, filterOrListener: Map<string, any> | Listener, listener?: Listener): this {
+  on(network: string, name: string, listener: EventListener): this;
+  on(network: string, name: string, filter: Map<string, any>, listener: EventListener): this;
+  on(network: string, name: string, filterOrListener: Map<string, any> | EventListener, listener?: EventListener): this {
     let filter;
     if (filterOrListener instanceof Map) {
       filter = filterOrListener;
@@ -122,9 +101,9 @@ export class BaseService {
     return this;
   }
 
-  once(network: string, name: string, listener: Listener): this;
-  once(network: string, name: string, filter: Map<string, any>, listener: Listener): this;
-  once(network: string, name: string, filterOrListener: Map<string, any> | Listener, listener?: Listener): this {
+  once(network: string, name: string, listener: EventListener): this;
+  once(network: string, name: string, filter: Map<string, any>, listener: EventListener): this;
+  once(network: string, name: string, filterOrListener: Map<string, any> | EventListener, listener?: EventListener): this {
     let filter;
     if (filterOrListener instanceof Map) {
       filter = filterOrListener;
@@ -142,7 +121,7 @@ export class BaseService {
     return this;
   }
 
-  off(network: string, listener: Listener) {
+  off(network: string, listener: EventListener) {
     this.provider.off('log', listener);
   }
 
@@ -176,7 +155,6 @@ export class BaseContract {
     this.network = network;
     this.description = description;
 
-    console.log('contract description:', description);
     for (const method of description.methods.filter(m => m.networks.includes(network))) {
       Object.defineProperty(this.methods, method.name, {
         writable: false,
@@ -216,6 +194,50 @@ export class BaseContract {
         return Reflect.has(target, prop);
       }
     });
+  }
+
+  on(name: string, listener: EventListener): this;
+  on(name: string, filter: Map<string, any>, listener: EventListener): this;
+  on(name: string, filterOrListener: Map<string, any> | EventListener, listener?: EventListener): this {
+    let filter;
+    if (filterOrListener instanceof Map) {
+      filter = filterOrListener;
+    } else {
+      listener = filterOrListener;
+    }
+    this.provider.on('log', {
+      network: this.network,
+      service: this.name,
+      event: {
+        name,
+        params: filter,
+      }
+    }, listener!!);
+    return this;
+  }
+
+  once(name: string, listener: EventListener): this;
+  once(name: string, filter: Map<string, any>, listener: EventListener): this;
+  once(name: string, filterOrListener: Map<string, any> | EventListener, listener?: EventListener): this {
+    let filter;
+    if (filterOrListener instanceof Map) {
+      filter = filterOrListener;
+    } else {
+      listener = filterOrListener;
+    }
+    this.provider.once('log', {
+      network: this.network,
+      service: this.name,
+      event: {
+        name,
+        params: filter,
+      }
+    }, listener!!);
+    return this;
+  }
+
+  off(listener: EventListener) {
+    this.provider.off('log', listener);
   }
 }
 

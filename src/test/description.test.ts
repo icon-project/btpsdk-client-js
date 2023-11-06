@@ -5,9 +5,6 @@ import {
 } from "./utils";
 
 import {
-  Service,
-} from "../service/service";
-import {
   OpenAPIDocument,
 } from "../service/description";
 

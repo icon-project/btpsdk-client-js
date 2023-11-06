@@ -47,7 +47,6 @@ export class BlockChain {
   #created: Block = GENESIS;
   #finalized: Block = GENESIS;
   #fork: ForkFunc;
-  #logs: Array<EventLog> = new Array();
 
   #parent?: Block;
   #ancestor?: Block;
