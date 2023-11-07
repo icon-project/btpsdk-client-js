@@ -37,7 +37,6 @@ export interface Provider extends EventEmitter {
 
 export interface Signer {
   init(): Promise<void>;
-  supports(type: string): boolean;
   supports(): Array<string>;
   address(type: string): Promise<string>;
   sign(type: string, message: string): Promise<string>;

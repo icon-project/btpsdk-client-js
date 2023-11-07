@@ -1,8 +1,5 @@
 {
   "compilerOptions": {
-    //"skipLibCheck": false,
-    //"noEmitOnError": true,
-
     "allowSyntheticDefaultImports": true,
     "declaration": true,
     "declarationMap": true,
@@ -10,22 +7,19 @@
     "forceConsistentCasingInFileNames": true,
     "importHelpers": true,
     "lib": [
-      "dom", // For refer to `RequestInit` on `fetch` API
+      "dom",
       "es2020",
       "es6"
     ],
-    "moduleResolution": "node16",
+    "moduleResolution": "node",
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "noUnusedLocals": true,
-    "rootDir": "../src",
     "strict": true,
     "sourceMap": true,
     "target": "es2022",
     "useUnknownInCatchVariables": false
-  },
-  "exclude": [],
-  "include": ["../src/**/*.ts"]
+  }
 }

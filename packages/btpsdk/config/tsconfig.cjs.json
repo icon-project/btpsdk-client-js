@@ -1,7 +1,10 @@
 {
-  "extends": "./tsconfig.base.json",
+  "extends": "../../../tsconfig.base.json",
   "compilerOptions": {
-    "module": "node16",
+    "module": "commonjs",
+    "rootDir": "../src",
     "outDir": "../lib.cjs"
-  }
+  },
+  "exclude": [],
+  "include": ["../src/**/*.ts"]
 }

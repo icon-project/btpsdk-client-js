@@ -1,12 +1,8 @@
 import {
-  assert,
-  BTPError,
   Signer,
-  ERRORS
-} from "btp";
+} from "@iconfoundation/btpsdk";
 
 import {
-  SDKProvider,
   MetaMaskSDK
 } from "@metamask/sdk";
 
@@ -65,6 +61,10 @@ export class WebMetamaskSigner implements Signer {
     });
   }
 
+  supports(): Array<string> {
+    return ['evm', 'eth2', 'bsc'];
+  }
+
   async address(type: string): Promise<string> {
     console.log('WebMetamaskSigner::address()');
     const provider = this.#metamask.getProvider();
@@ -80,7 +80,7 @@ export class WebMetamaskSigner implements Signer {
     const provider = this.#metamask.getProvider();
     const address = await this.address(type);
     try {
-      const signature = await this.#metamask.getProvider().request({
+      const signature = await provider.request({
         method: 'eth_sign',
         params: [ address, '0x1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8' ]
       });
@@ -99,34 +99,27 @@ function getGlobal(): any {
 }
 
 export class WebHanaSigner implements Signer {
-  #signers: Array<{ alias: Array<string>, instance: Signer }>;
+  #signers: Array<Signer>;
   constructor() {
     this.#signers = [
-      {
-        alias: [
-          'icon'
-        ],
-        instance: new WebIconHanaSigner(),
-      }, {
-        alias: [
-          'evm',
-          'eth2',
-          'bsc'
-        ],
-        instance: new WebEvmHanaSigner(),
-      }
-    ]
+      new WebIconHanaSigner(),
+      new WebEvmHanaSigner()
+    ];
   }
 
   #signer(type: string): Signer {
-    return this.#signers.find(signer => signer.alias.includes(type))?.instance
+    return this.#signers.find(signer => signer.supports().includes(type))
       ?? ((): any => { throw new Error('') })();
   }
 
   async init(): Promise<void> {
     await Promise.all(this.#signers.map((signer) => {
-      return signer.instance.init();
+      return signer.init();
     }));
+  }
+
+  supports(): Array<string> {
+    return ['icon', 'evm', 'eth2', 'bsc'];
   }
 
   async address(type: string): Promise<string> {
@@ -141,7 +134,6 @@ export class WebHanaSigner implements Signer {
 
 // test with Hana Wallet v2.14.5
 export class WebIconHanaSigner implements Signer {
-  #signer: Map<string, Signer> = new Map();
 
   async init(): Promise<void> {
     console.log('WebIconHanaSigner::init()');
@@ -161,6 +153,10 @@ export class WebIconHanaSigner implements Signer {
       }
       global.addEventListener('ICONEX_RELAY_RESPONSE', fn, { once: true });
     });
+  }
+
+  supports(): Array<string> {
+    return ['icon'];
   }
 
   async address(type: string): Promise<string> {
@@ -216,7 +212,6 @@ export class WebIconHanaSigner implements Signer {
 }
 
 export class WebEvmHanaSigner implements Signer {
-  #signer: Map<string, Signer> = new Map();
 
   async init(): Promise<void> {
     console.log('WebEvmHanaSigner::init()');
@@ -241,6 +236,10 @@ export class WebEvmHanaSigner implements Signer {
     } else {
       return candidates[0];
     }
+  }
+
+  supports(): Array<string> {
+    return ['evm', 'eth2', 'bsc'];
   }
 
   async address(type: string): Promise<string> {

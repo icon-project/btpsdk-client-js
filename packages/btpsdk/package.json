@@ -7,8 +7,7 @@
   "scripts": {
     "test": "jest -c ./config/jest.config.ts",
     "watch": "tsc --project ./config/tsconfig.esm.json --watch",
-    "build": "tsc --project ./config/tsconfig.cjs.json",
-    "build:all": "npm run build:cjs && npm run build:esm",
+    "build": "npm run build:cjs && npm run build:esm",
     "build:watch": "npm run build:cjs -- -w",
     "build:cjs": "tsc --project ./config/tsconfig.cjs.json",
     "build:esm": "tsc --project ./config/tsconfig.esm.json",
