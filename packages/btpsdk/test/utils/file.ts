@@ -13,5 +13,5 @@ function root(): string {
 }
 
 export function read (name: string): Buffer {
-  return fs.readFileSync(path.resolve(root(), 'src/test/fixtures', name));
+  return fs.readFileSync(path.resolve(root(), 'test/fixtures', name));
 }

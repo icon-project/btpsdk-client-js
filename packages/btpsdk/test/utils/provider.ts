@@ -8,24 +8,24 @@ import {
   TransactOpts,
   Network,
   PendingTransaction,
-} from "../../provider";
+} from "../../src/provider";
 
 import {
   EventListener,
-} from '../../provider/event';
+} from '../../src/provider/event';
 
 import {
   ServiceDescription,
-} from "../../service";
+} from "../../src/service";
 
 import {
   Service,
-} from "../../service/service";
+} from "../../src/service/service";
 
 import {
   BTPError,
   ERR_INCONSISTENT_BLOCK,
-} from "../../error/index";
+} from "../../src/error/index";
 
 import {
   BlockChain,

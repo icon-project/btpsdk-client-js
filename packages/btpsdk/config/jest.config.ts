@@ -4,7 +4,8 @@ const config: Config = {
   verbose: true,
   testEnvironment: 'node',
   testMatch: [ "**/?(*.)+(test).ts" ],
-  rootDir: '../src',
+  rootDir: '../',
+  collectCoverage: true,
   transform: {
     '^.+\\.ts?$': [
       'ts-jest',

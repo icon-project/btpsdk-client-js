@@ -1,14 +1,12 @@
-import "mocha";
-import assert from "assert";
-
 import {
   BlockFinalityEmitter,
   // LogEmitter,
-} from "../provider";
+} from "../src/provider";
+
 import {
   BTPError,
   ERR_INCONSISTENT_BLOCK
-} from "../error";
+} from "../src/error";
 
 import { Provider } from "./utils/provider";
 import { BlockChain } from "./utils/blockchain";
@@ -31,7 +29,7 @@ describe("Test events", () => {
           id: blockchain.created().id,
           height: blockchain.created().height
         }, (error) => {
-          assert.ok(error == null);
+          expect(error).toBe(undefined);
           done();
         })
       }, 100);
@@ -46,7 +44,7 @@ describe("Test events", () => {
           id: blockchain.created().id,
           height: blockchain.created().height + 1
         }, (error) => {
-          assert.ok(BTPError.is(error, ERR_INCONSISTENT_BLOCK));
+          expect(BTPError.is(error, ERR_INCONSISTENT_BLOCK)).toBe(true);
           done()
         })
       }, 50);

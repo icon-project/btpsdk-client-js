@@ -4,7 +4,7 @@ import {
 
 import {
   OpenAPIDocument,
-} from "../service/description";
+} from "../src/service/description";
 
 describe("service description tests", () => {
   it('load services', async () => {

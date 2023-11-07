@@ -1,4 +1,4 @@
-import { merge } from '../utils/index';
+import { merge } from '../src/utils/index';
 
 describe('Test utils', () => {
 

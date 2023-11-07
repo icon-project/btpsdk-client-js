@@ -26,6 +26,6 @@
     "target": "es2022",
     "useUnknownInCatchVariables": false
   },
-  "exclude": ["../src/extension"],
-  "include": ["../src/**/*.ts", "../src/test/*.test.ts"]
+  "exclude": [],
+  "include": ["../src/**/*.ts"]
 }
