@@ -10,6 +10,18 @@ import type {
   Network,
 } from "../provider/types";
 
+import {
+  getLogger,
+} from "../utils/log";
+
+const log = getLogger('service_description');
+
+import {
+  BTPError,
+  ERR_UNKNOWN_SERVICE,
+  ERR_INVALID_FORMAT,
+} from "../error/index";
+
 const resolver = {
   networks: {
     post: (o: any) => {
@@ -58,9 +70,15 @@ export class OpenAPIDocument {
   }
 
   service(name: string): ServiceDescription {
+    log.debug(`service(${name})`);
     const prefix = `\/api\/${name}\/`;
     const regexp = new RegExp(`^${prefix}`);
-    const svcapi: any = Object.fromEntries(Object.entries(this.#doc['paths']).filter(([_name]) => regexp.test(_name)));
+    const apis = Object.entries(this.#doc['paths']);
+    const targetApis = apis.filter(([_name]) => regexp.test(_name));
+    if (targetApis.length <= 0) {
+      throw new BTPError(ERR_UNKNOWN_SERVICE, { service: name });
+    }
+    const svcapi: any = Object.fromEntries(targetApis);
     const networks: Set<string> = new Set();
     const methods = Object.entries(svcapi).map(([_name, _key]: [string, any]) => {
       // assumes that an api has only either `POST` or `GET`
@@ -79,7 +97,7 @@ export class OpenAPIDocument {
           readonly: true,
         }
       } else {
-        assert(false);
+        throw new BTPError(ERR_INVALID_FORMAT, { name: 'service description' })
       }
       props.networks.forEach((n: string) => networks.add(n));
       return {

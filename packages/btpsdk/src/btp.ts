@@ -1,15 +1,3 @@
-export * from './provider/index';
-
-export type {
-  Network,
-  Provider,
-} from './provider/index.js';
-
-export {
-  Contract,
-} from './service/index.js';
-
-export {
-  assert,
-  BTPError,
-} from './error/index.js'
+export * from './provider/index.js';
+export * from './service/index.js'
+export * from './error/index.js';

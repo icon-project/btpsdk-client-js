@@ -35,7 +35,17 @@ export const ERR_UNKNOWN_NETWORK_NAME = {
 
 export const ERR_UNKNOWN_SERVICE = {
   code: 203,
-  message: ({ service }: { service: string }) => `unknown service - service(${service})`
+  message: ({ name }: { name: string }) => `unknown service - service(${name})`
+}
+
+export const ERR_UNKNOWN_SERVICE_API = {
+  code: 204,
+  message: ({ service, name }: { service: string, name: string }) => `unknown service api - service(${service}), name(${name})`
+}
+
+export const ERR_INVALID_FORMAT = {
+  code: 205,
+  message: ({ name }: { name: string }) => `invalid ${name} format`
 }
 
 export const ERR_SERVER_REJECT = {

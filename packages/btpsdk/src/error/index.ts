@@ -13,12 +13,10 @@ export function assert(condition: any, msg?: string): asserts condition {
 
 export class BTPError extends Error {
   readonly code: number;
-  readonly message: string;
 
   constructor(description: ErrorDescription, args: { [ name: string ]: any } = {}) {
     super(typeof(description.message) === 'string' ? description.message : description.message(args) );
     this.code = description.code;
-    this.message = super.message;
   }
 
   static is (other: any, description: ErrorDescription): other is BTPError {

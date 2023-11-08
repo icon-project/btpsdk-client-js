@@ -9,12 +9,17 @@ import type {
   ServiceDescription,
 } from "./types";
 
+import {
+  BTPError,
+  ERR_UNKNOWN_SERVICE_API,
+} from '../error/index';
+
 import type {
   EventListener,
 } from "../provider/event/index";
 
-// import { getLogger } from '../utils/log';
-// const log = getLogger('service');
+import { getLogger } from '../utils/log';
+const log = getLogger('service');
 
 const passProperties = [ 'then' ];
 
@@ -41,6 +46,12 @@ export class BaseService {
   readonly description: ServiceDescription;
   readonly networks: Array<Network>;
 
+  #checkNetworkAvailability(name: string): Network {
+    return this.networks.find(_network => _network.name === name) ?? (() => {
+      throw new Error('not available network');
+    })();
+  }
+
   constructor(provider: Provider, description: ServiceDescription) {
     this.provider = provider;
     this.name = description.name;
@@ -48,22 +59,25 @@ export class BaseService {
     this.description = description;
     this.methods = {};
 
+    log.debug(`new service name - name(${this.name})`);
     for (const method of description.methods) {
+      log.debug(`define service method - name(${method.name})`);
       Object.defineProperty(this.methods, method.name, {
         writable: false,
         enumerable: true,
         value: !method.readonly ? async (...args: Array<any>): Promise<any> => {
           const { network, params, options } = resolveTransactArgs(args);
-          return this.provider.transact(network, this.name, method.name, params, options);
+          return this.provider.transact(this.#checkNetworkAvailability(network), this.name, method.name, params, options);
         } : async (...args: Array<any>): Promise<PendingTransaction> => {
           const { network, params, options } = resolveCallArgs(args);
-          return this.provider.call(network, this.name, method.name, params, options);
+          return this.provider.call(this.#checkNetworkAvailability(network), this.name, method.name, params, options);
         }
       });
     }
 
     return new Proxy(this, {
       get: (target, prop, receiver) => {
+        log.debug(`service proxy get - prop(${String(prop)})`);
         if (typeof(prop) === 'symbol' || prop in target || passProperties.indexOf(prop) >= 0) {
           return Reflect.get(target, prop, receiver);
         }
@@ -73,10 +87,11 @@ export class BaseService {
         return undefined;
       },
       has: (target, prop) => {
+        log.debug(`service proxy has - prop(${String(prop)})`);
         if (passProperties.indexOf(<string>prop) >= 0) {
           return Reflect.has(target, prop);
         }
-        return Reflect.has(target, prop);
+        return target.methods.hasOwnProperty(prop);
       }
     });
   }
@@ -125,14 +140,16 @@ export class BaseService {
     this.provider.off('log', listener);
   }
 
-  at(network: string): Promise<Contract> {
-    return new Promise((resolve, reject) => {
-      if (this.networks.find(n => n.name == network) != null) {
-        resolve(new Contract(this.provider, network, this.description));
-      } else {
-        reject(new Error(`no contract on the network - network(${network})`));
-      }
-    });
+  at(network: string): Contract {
+    const target = this.#checkNetworkAvailability(network);
+    return new Contract(this.provider, target, this.description)
+  }
+
+  getFunction(name: string): ((...args: Array<any>) => Promise<PendingTransaction | any>) {
+    if (!this.methods.hasOwnProperty(name)) {
+      throw new BTPError(ERR_UNKNOWN_SERVICE_API, { service: this.name,  name });
+    }
+    return Object.getOwnPropertyDescriptor(this.methods, name)!.value;
   }
 }
 
@@ -142,7 +159,7 @@ export class Service extends BaseService {
 
 export class BaseContract {
   readonly provider: Provider;
-  readonly network: string;
+  readonly network: Network;
   readonly description: ServiceDescription;
   readonly methods: { [name: string]: any } = {};
 
@@ -150,12 +167,12 @@ export class BaseContract {
     return this.description.name;
   }
 
-  constructor(provider: Provider, network: string, description: ServiceDescription) {
+  constructor(provider: Provider, network: Network, description: ServiceDescription) {
     this.provider = provider;
     this.network = network;
     this.description = description;
 
-    for (const method of description.methods.filter(m => m.networks.includes(network))) {
+    for (const method of description.methods.filter(m => m.networks.includes(network.name))) {
       Object.defineProperty(this.methods, method.name, {
         writable: false,
         enumerable: true,

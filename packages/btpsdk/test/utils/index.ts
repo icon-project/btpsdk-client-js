@@ -7,4 +7,4 @@ export {
   EventName,
   ForkFunc,
   BlockChain,
-} from "./blockchain"; 
+} from "./blockchain";
