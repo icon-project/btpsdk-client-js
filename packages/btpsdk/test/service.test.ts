@@ -14,10 +14,6 @@ function getTestProvider(): Provider {
   return new BTPProvider('http://20.20.0.32:10080');
 }
 
-interface Environment {
-  provider: Provider;
-}
-
 describe('service', () => {
   const desc: ServiceDescription = {
     name: 'dappsample',

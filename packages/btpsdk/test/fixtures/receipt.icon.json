@@ -1,0 +1,46 @@
+{
+  "Raw": {
+    "to": "cx5ae6a222e82136f9dedec54b76047e7e62faf9a6",
+    "cumulativeStepUsed": "0x14b154",
+    "stepUsed": "0x14b154",
+    "stepPrice": "0x2e90edd00",
+    "eventLogs": [
+      {
+        "scoreAddress": "cx0000000000000000000000000000000000000000",
+        "indexed": [ "BTPMessage(int,int)","0x20","0xff" ],
+        "data": []
+      }, {
+      "scoreAddress": "cx2093dd8134f26df11aa928c86b6f5bac64a1cf83",
+      "indexed": [ "BTPEvent(str,int,str,str)","0x3.icon","0x11e" ],
+      "data": [ "0x63.bsc","SEND" ]
+      }, {
+      "scoreAddress": "cx784b438d386170c24a12d4de3df9809d066b6258",
+      "indexed": [
+        "CallMessageSent(Address,str,int,int)",
+        "cx5ae6a222e82136f9dedec54b76047e7e62faf9a6",
+        "btp://0x63.bsc/0x87a84eA22Dcc1bA533c5d90fd1Ee687aF73f9948",
+        "0x10c"
+      ],
+      "data": [ "0x11e" ]
+      }, {
+      "scoreAddress": "cx5ae6a222e82136f9dedec54b76047e7e62faf9a6",
+      "indexed": [ "Sent(str,int,int,int)" ],
+      "data": [
+        "btp://0x63.bsc/0x87a84eA22Dcc1bA533c5d90fd1Ee687aF73f9948",
+        "0xae",
+        "0x1",
+        "0x10c"
+      ]
+      }
+    ],
+    "logsBloom": "0x80000001000000000000000000000000040000000000800000000000000008000000000000000004000108000000000000000000000000000000002040000000002000000000000000000000200000000000000800000000008030000000000020000008080000000000000000000000800000000000000800000000000008000000000000008100000000000200000040000000000008400000004400000000000000000000000000080040000000000000000000004000000000400000080000000000000000000000000000000100002000000020000000000000080000000800000000000100000000000000082000000000000001000000000000000000",
+    "status": "0x1",
+    "blockHash": "0xb2cf4ae7d46d31c5f9bcae69b19d6481c38ec7e58148fc2c63cda6f958c2fd41",
+    "blockHeight": "0x703646",
+    "txIndex": "0x1",
+    "txHash": "0xdcf529e56dee3b0e3c081a7e743a66bc78a5243c9f496af1b4dd9a581f449b0b"
+  },
+  "BlockHeight": 7353927,
+  "BlockHash": "0xe6bd369e2ca0a5dd1b35c9dab1b80712e7754e22bc1571622f5b22f065c40830",
+  "Failure":null
+}

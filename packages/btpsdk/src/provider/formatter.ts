@@ -5,7 +5,6 @@ import {
 import {
   BTPError,
   ERR_UNKNOWN_NETWORK_TYPE,
-  ERR_NOT_IMPLEMENTED,
 } from '../error/index';
 
 import { LogEvent } from './event/eventlog';
@@ -37,9 +36,9 @@ export const formatEventLog = (type: NetworkType, eventLog: any): LogEvent => {
         },
         tx: {
           id: eventLog.BaseEvent.Raw.transactionHash,
-          index: 0,
+          index: Number.parseInt(eventLog.BaseEvent.Raw.transactionIndex, 16),
         },
-        index: 0,
+        index: Number.parseInt(eventLog.BaseEvent.Raw.logIndex, 16),
         payload: {
           name: eventLog.Name,
           params: eventLog.Params
@@ -56,7 +55,12 @@ import type { Receipt } from './types';
 export const formatReceipt = (type: NetworkType, receipt: any): Receipt => {
   switch (type) {
     case 'icon': {
-      throw new BTPError(ERR_NOT_IMPLEMENTED);
+      return {
+        block: {
+          id: receipt.BlockHash,
+          height: receipt.BlockHeight
+        }
+      }
     }
     case 'eth2':
     case 'bsc': {

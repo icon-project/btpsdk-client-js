@@ -1,0 +1,21 @@
+{
+  "BaseEvent": {
+    "Raw": {
+      "scoreAddress": "cx5ae6a222e82136f9dedec54b76047e7e62faf9a6",
+      "indexed": ["RollbackDataReceived(int,bytes,int)"],
+      "data" :["0xb3","0xe76e9fe9ce9ceb6eb5eb7e9be38eb5ef8eb5","0x111"]
+    },
+    "BlockHeight": 7355034,
+    "BlockHash": "0xc3c3c7090ef56764747a36df76c98acdfb065448259b2d84224ab343df19afc9",
+    "TxHash": "0xde65dd1b1eb11dd61b7e3a95a46acc34db95d35210a339a1767373a59340c174",
+    "TxIndex": 1,
+    "IndexInTx": 0
+  },
+  "Signature": "RollbackDataReceived(int,bytes,int)",
+  "Name": "RollbackDataReceived",
+  "Params": {
+    "_data": "526f6c6c6261636b44617461",
+    "_sn": "0xb3",
+    "_xcallSn": "0x111"
+  }
+}

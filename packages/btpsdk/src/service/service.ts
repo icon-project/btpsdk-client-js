@@ -12,6 +12,7 @@ import type {
 import {
   BTPError,
   ERR_UNKNOWN_SERVICE_API,
+  ERR_UNKNOWN_SERVICE,
 } from '../error/index';
 
 import type {
@@ -27,7 +28,7 @@ function resolveCallArgs(args: Array<any>): { network: string, params: { [key: s
   return {
     network: args[0],
     params: args[1],
-    options: args.length > 2 ? args[2] : undefined
+    options: args.length > 2 ? args[2] : {}
   }
 }
 
@@ -39,18 +40,18 @@ function resolveTransactArgs(args: Array<any>): { network: string, params: { [ke
   }
 }
 
+function findNetworkOrThrowError(networks: Array<Network>, target: string): Network {
+  return networks.find(_network => _network.name === target) ?? (() => {
+      throw new BTPError(ERR_UNKNOWN_SERVICE, { name: target });
+    })();
+}
+
 export class BaseService {
   readonly provider: Provider;
   readonly name: string;
   readonly methods: { [name: string]: any };
   readonly description: ServiceDescription;
   readonly networks: Array<Network>;
-
-  #checkNetworkAvailability(name: string): Network {
-    return this.networks.find(_network => _network.name === name) ?? (() => {
-      throw new Error('not available network');
-    })();
-  }
 
   constructor(provider: Provider, description: ServiceDescription) {
     this.provider = provider;
@@ -67,10 +68,10 @@ export class BaseService {
         enumerable: true,
         value: !method.readonly ? async (...args: Array<any>): Promise<any> => {
           const { network, params, options } = resolveTransactArgs(args);
-          return this.provider.transact(this.#checkNetworkAvailability(network), this.name, method.name, params, options);
+          return this.provider.transact(findNetworkOrThrowError(this.networks, network), this.name, method.name, params, options);
         } : async (...args: Array<any>): Promise<PendingTransaction> => {
           const { network, params, options } = resolveCallArgs(args);
-          return this.provider.call(this.#checkNetworkAvailability(network), this.name, method.name, params, options);
+          return this.provider.call(findNetworkOrThrowError(this.networks, network), this.name, method.name, params, options);
         }
       });
     }
@@ -141,7 +142,7 @@ export class BaseService {
   }
 
   at(network: string): Contract {
-    const target = this.#checkNetworkAvailability(network);
+    const target = findNetworkOrThrowError(this.networks, network);
     return new Contract(this.provider, target, this.description)
   }
 
@@ -178,17 +179,18 @@ export class BaseContract {
         enumerable: true,
         value: method.readonly
           ? ((provider: Provider, name: string) => {
-              return async (...args: Array<any>): Promise<any> => {
-                const params = args[0];
-                const options = args.length > 0 ? args[1] : undefined;
-                return provider.call(this.network, name, method.name, params, options);
-              }
+            return async (...args: Array<any>): Promise<any> => {
+              const params = args[0];
+              const options = args.length > 1 ? args[1] : {};
+              return provider.call(this.network, name, method.name, params, options);
+            }
             })(this.provider, method.name)
           : ((provider: Provider, name: string) => {
-            return async (...args: Array<any>): Promise<any> => {
-                const params = args[0];
-                const options = args.length > 0 ? args[1] : undefined;
-                return provider.transact(this.network, name, method.name, params, options);
+            return async (...args: Array<any>): Promise<PendingTransaction> => {
+              console.log('service transact args:', args);
+              const params = args[0];
+              const options = args.length > 1 ? args[1] : {};
+              return provider.transact(this.network, name, method.name, params, options);
             }
           })(this.provider, this.name)
       });

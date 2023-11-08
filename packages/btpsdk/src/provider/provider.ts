@@ -146,7 +146,6 @@ export class BTPProvider implements Provider {
       log.debug('conv network name to network instance:', network);
     }
 
-    console.log(`provider::transact{ ${network}, ${service}, ${method}, ${params}, ${options} }`);
     if (!!options.from != !!options.signature) {
       throw new Error('both `from` and `signautre` must be null or have values');
     }
@@ -194,12 +193,10 @@ export class BTPProvider implements Provider {
       network: (network as Network).name,
       params,
     });
-    console.log('query:', query);
     return await this.#client.request<T>(`/api/${service}/${method}?${query}`);
   }
 
   async getTransactionResult(network: Network, id: string): Promise<Receipt> {
-    console.debug('provider::getTransactionResult', network, id);
     let query = qs({ network: network.name });
     const response = await this.#client.request(`/api/result/${id}?${query}`);
     return formatReceipt(network.type, response);
