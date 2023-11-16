@@ -19,22 +19,23 @@ function checkType (condition: boolean): asserts condition {
 
 // format response of `/api`
 export function formatServicesInfo (value: any): Array<ServiceInfo> {
-  checkType(typeof(value) === 'object');
-  checkType(typeof(value.name) === 'string');
-  checkType(typeof(value.networks) === 'object');
+  checkType(Array.isArray(value));
 
   return value.map(({ name, networks }: {
     name: string,
-    networks: Array<{
+    networks: {
       [name: string]: NetworkType
-    }> }) => {
+    }
+  }) => {
+    checkType(typeof(name) === 'string');
+    checkType(typeof(networks) === 'object');
     return {
       name,
       networks: Object.entries(networks).map(([ name, type ]) => {
         return { name, type };
       })
     };
-  }) as Array<ServiceInfo>;
+  });
 }
 
 // format response of `/api`
@@ -63,7 +64,7 @@ export function formatServiceDescs (value: any, infos: Array<ServiceInfo>): Arra
   checkType(typeof(value.paths) === 'object');
 
   return infos.map(info => {
-    const prefix = `\/api\/${info.name}\/`;
+    const prefix = `/api/${info.name}/`;
     const regexp = new RegExp(`^${prefix}`);
 
     const paths = Object.entries(value['paths']);
@@ -73,17 +74,18 @@ export function formatServiceDescs (value: any, infos: Array<ServiceInfo>): Arra
       name: info.name,
       networks: info.networks,
       methods: apis.length <= 0 ? [] : apis.map(([ name, desc ]: [ string, any ]) => {
+        let methods = { name: name.slice(prefix.length, name.length), readonly: desc.get != null };
         if (desc.post != null) {
           return {
+            ...methods,
             inputs: _formatWritableMethodInputs(desc.post),
             networks: _formatWritableMethodSupportedNetworks(desc.post),
-            readonly: false
           }
         } else if (desc.get != null) {
           return {
+            ...methods,
             inputs: _formatReadableMethodInputs(desc.get),
             networks: _formatReadableSupportedNewtorks(desc.get),
-            readonly: true
           }
         } else {
           throw new Error('unknown service method property');
@@ -123,7 +125,7 @@ function _formatReadableMethodInputs (value: any) {
   checkType(Array.isArray(value.parameters));
   try {
     return Object.keys(
-      value.find((p: any) => p.name === 'request')['schema']['properties']['params']['properties']
+      value.parameters.find((p: any) => p.name === 'request').schema.properties.params.properties
         ?? []
     ) ?? [];
   } catch (error) {

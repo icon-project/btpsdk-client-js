@@ -25,22 +25,6 @@ const log = getLogger('service');
 
 const passProperties = [ 'then' ];
 
-function resolveCallArgs(args: Array<any>): { network: string, params: { [key: string]: any }, options: CallOpts } {
-  return {
-    network: args[0],
-    params: args[1],
-    options: args.length > 2 ? args[2] : {}
-  }
-}
-
-function resolveTransactArgs(args: Array<any>): { network: string, params: { [key: string]: any }, options: TransactOpts } {
-  return {
-    network: args[0],
-    params: args[1],
-    options: args.length > 2 ? args[2] : {}
-  }
-}
-
 function findNetworkOrThrowError(networks: Array<Network>, target: string): Network {
   return networks.find(_network => _network.name === target) ?? (() => {
       throw new BTPError(ERR_UNKNOWN_SERVICE, { name: target });
@@ -67,13 +51,12 @@ export class BaseService {
       Object.defineProperty(this.methods, method.name, {
         writable: false,
         enumerable: true,
-        value: !method.readonly ? async (...args: Array<any>): Promise<any> => {
-          const { network, params, options } = resolveTransactArgs(args);
-          return this.provider.transact(findNetworkOrThrowError(this.networks, network), this.name, method.name, params, options);
-        } : async (...args: Array<any>): Promise<PendingTransaction> => {
-          const { network, params, options } = resolveCallArgs(args);
-          return this.provider.call(findNetworkOrThrowError(this.networks, network), this.name, method.name, params, options);
-        }
+        value: method.readonly
+          ? async (network: string, params: Map<string, any>, options?: CallOpts): Promise<any> => {
+            return this.provider.call(findNetworkOrThrowError(this.networks, network), this.name, method.name, params, options ?? {});
+          } : async (network: string, params: Map<string, any>, options?: TransactOpts): Promise<PendingTransaction> => {
+            return this.provider.transact(findNetworkOrThrowError(this.networks, network), this.name, method.name, params, options ?? {});
+          }
       });
     }
 
@@ -93,7 +76,7 @@ export class BaseService {
         if (passProperties.indexOf(<string>prop) >= 0) {
           return Reflect.has(target, prop);
         }
-        return target.methods.hasOwnProperty(prop);
+        return Object.prototype.hasOwnProperty.call(target.methods, prop);
       }
     });
   }
@@ -147,13 +130,17 @@ export class BaseService {
     return new Contract(this.provider, target, this.description)
   }
 
-  getFunction(name: string): ((...args: Array<any>) => Promise<PendingTransaction | any>) {
-    if (!this.methods.hasOwnProperty(name)) {
+  getFunction(name: string): TransactFunc | CallFunc {
+    if (!Object.prototype.hasOwnProperty.call(this.methods, name)) {
       throw new BTPError(ERR_UNKNOWN_SERVICE_API, { service: this.name,  name });
     }
     return Object.getOwnPropertyDescriptor(this.methods, name)!.value;
   }
 }
+
+type TransactFunc = (params: Map<string, any>, opts: TransactOpts) => Promise<PendingTransaction>
+type CallFunc = (params: Map<string, any>, opts: CallOpts) => Promise<any>
+
 
 export class Service extends BaseService {
   [ name: string ]: any;
@@ -179,21 +166,11 @@ export class BaseContract {
         writable: false,
         enumerable: true,
         value: method.readonly
-          ? ((provider: Provider, name: string) => {
-            return async (...args: Array<any>): Promise<any> => {
-              const params = args[0];
-              const options = args.length > 1 ? args[1] : {};
-              return provider.call(this.network, name, method.name, params, options);
-            }
-            })(this.provider, method.name)
-          : ((provider: Provider, name: string) => {
-            return async (...args: Array<any>): Promise<PendingTransaction> => {
-              log.debug(`transaction args - args(${JSON.stringify(args)})`);
-              const params = args[0];
-              const options = args.length > 1 ? args[1] : {};
-              return provider.transact(this.network, name, method.name, params, options);
-            }
-          })(this.provider, this.name)
+          ? async (params: Map<string, any>, options?: CallOpts): Promise<any> => {
+            return this.provider.call(this.network, this.name, method.name, params, options ?? {});
+          } : async (params: Map<string, any>, options?: TransactOpts): Promise<PendingTransaction> => {
+            return this.provider.transact(this.network, this.name, method.name, params, options ?? {});
+          }
       });
     }
 

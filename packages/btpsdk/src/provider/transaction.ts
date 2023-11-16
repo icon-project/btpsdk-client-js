@@ -56,7 +56,7 @@ export interface EvmTransactOpts extends BaseTransactOpts {
 }
 
 export type CallOpts = {
-  from: string;
+  from?: string;
 };
 
 export class PendingTransaction {

@@ -81,7 +81,7 @@ export class OpenAPIDocument {
 
   service(name: string): ServiceDescription {
     log.debug(`service(${name})`);
-    const prefix = `\/api\/${name}\/`;
+    const prefix = `/api/${name}/`;
     const regexp = new RegExp(`^${prefix}`);
     const apis = Object.entries(this.#doc['paths']);
     const targetApis = apis.filter(([_name]) => regexp.test(_name));
