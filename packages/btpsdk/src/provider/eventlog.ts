@@ -1,5 +1,5 @@
 import { WebSocket as WebSock } from "./ws";
-import { formatEventLog } from './formatter';
+import { formatEventLog } from './format';
 import { getLogger } from '../utils/log';
 import type {
   Network,

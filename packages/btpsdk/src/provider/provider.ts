@@ -23,13 +23,10 @@ import { PendingTransaction } from './transaction.js';
 import {
   formatServiceDescs,
   formatServicesInfo,
-  formatNetworks
-} from './format.js';
-import {
+  formatNetworks,
   formatReceipt,
-  BTPReceipt,
   formatTransactOpts,
-} from './formatter.js';
+} from './format.js';
 import { qs } from '../utils/index.js';
 import { Service } from '../service/index';
 
@@ -270,7 +267,7 @@ export class BTPProvider implements Provider {
    */
   async getTransactionResult(network: Network, id: string): Promise<Receipt> {
     const query = qs({ network: network.name });
-    const response = await this.#client.request<BTPReceipt>(`/api/result/${id}?${query}`);
+    const response = await this.#client.request(`/api/result/${id}?${query}`);
     return formatReceipt(network.type, response);
   }
 

@@ -8,7 +8,10 @@ import type {
 import {
   BTPError,
   ERR_INVALID_FORMAT,
+  ERR_UNKNOWN_NETWORK_TYPE,
 } from '../error/index';
+
+import type { EventLog } from './eventlog';
 
 import { getLogger } from '../utils/log';
 const log = getLogger('format');
@@ -98,7 +101,7 @@ export function formatServiceDescs (value: any, infos: Array<ServiceInfo>): Arra
 function _formatWritableMethodInputs (value: any) {
   let inputs;
   try {
-    inputs = value['requestBody']['content']['application/json']['schema']['properties']['params']['properties'];
+    inputs = value.requestBody.content['application/json'].schema.properties.params.properties;
   } catch (error) {
     if (error instanceof TypeError) {
       throw new BTPError(ERR_INVALID_FORMAT, { name: 'api desc' });
@@ -110,7 +113,7 @@ function _formatWritableMethodInputs (value: any) {
 
 function _formatWritableMethodSupportedNetworks (value: any) {
   try {
-    return value['requestBody']['content']['application/json']['schema']['properties']['network']['enum'];
+    return value.requestBody.content['application/json'].schema.properties.network.enum;
   } catch (error) {
     log.debug('fail to parsing supporting networks of writable method:', error);
     if (error instanceof TypeError) {
@@ -139,11 +142,155 @@ function _formatReadableMethodInputs (value: any) {
 function _formatReadableSupportedNewtorks (value: any) {
   checkType(typeof(value) === 'object');
   try {
-    return value['parameters'].find((parameter: any) => parameter.name === 'network')['schema']['enum'];
+    return value.parameters.find((parameter: any) => parameter.name === 'network').schema.enum;
   } catch (error) {
     if (error instanceof TypeError) {
       throw new BTPError(ERR_INVALID_FORMAT, { name: 'api desc' });
     }
     throw error;
+  }
+}
+
+type BTPEventLog = IconEventLog | EvmEventLog;
+
+interface CommonEventLog {
+  Name: string,
+  Params: Map<string, any>;
+}
+
+interface IconEventLog extends CommonEventLog {
+  BaseEvent: {
+    BlockHash: string;
+    BlockHeight: number;
+    TxHash: string;
+    TxIndex: number;
+    IndexInTx: number;
+  }
+}
+
+interface EvmEventLog extends CommonEventLog {
+  BaseEvent: {
+    Raw: {
+      blockHash: string;
+      blockNumber: string;
+      transactionHash: string;
+      transactionIndex: string;
+      logIndex: string;
+    }
+  }
+}
+
+export const formatEventLog = (type: NetworkType, eventLog: BTPEventLog): EventLog => {
+  switch (type) {
+    case 'icon': {
+      const el = eventLog as IconEventLog;
+      return {
+        block: {
+          id: el.BaseEvent.BlockHash,
+          height: el.BaseEvent.BlockHeight,
+        },
+        tx: {
+          id: el.BaseEvent.TxHash,
+          index: el.BaseEvent.TxIndex,
+        },
+        index: el.BaseEvent.IndexInTx,
+        payload: {
+          name: el.Name,
+          params: el.Params
+        }
+      }
+    }
+    case 'eth2':
+    case 'bsc': {
+      const el = eventLog as EvmEventLog;
+      return {
+        block: {
+          id: el.BaseEvent.Raw.blockHash,
+          height: Number.parseInt(el.BaseEvent.Raw.blockNumber, 16),
+        },
+        tx: {
+          id: el.BaseEvent.Raw.transactionHash,
+          index: Number.parseInt(el.BaseEvent.Raw.transactionIndex, 16),
+        },
+        index: Number.parseInt(el.BaseEvent.Raw.logIndex, 16),
+        payload: {
+          name: el.Name,
+          params: el.Params
+        }
+      }
+    }
+    default: {
+      throw new BTPError(ERR_UNKNOWN_NETWORK_TYPE, { type });
+    }
+  }
+}
+
+
+import type { Receipt } from './transaction';
+
+type IconReceipt = {
+  BlockHash: string;
+  BlockHeight: number;
+};
+type EvmReceipt = {
+  Raw: {
+    blockHash: string;
+    blockNumber: string;
+  }
+}
+
+export const formatReceipt = (type: NetworkType, value: any): Receipt => {
+  switch (type) {
+    case 'icon': {
+      checkType(typeof(value.BlockHash) === 'string')
+      checkType(typeof(value.BlockHeight) === 'number')
+      const receipt = value as IconReceipt;
+      return {
+        block: {
+          id: receipt.BlockHash,
+          height: receipt.BlockHeight
+        }
+      }
+    }
+    case 'eth2':
+    case 'bsc': {
+      checkType(typeof(value.Raw) === 'object')
+      checkType(typeof(value.Raw.blockHash) === 'string')
+      checkType(typeof(value.Raw.blockNumber) === 'string')
+      const receipt = value as EvmReceipt;
+      return {
+        block: {
+          id: receipt.Raw.blockHash,
+          height: Number.parseInt(receipt.Raw.blockNumber, 16),
+        }
+      }
+    }
+    default: {
+      throw new BTPError(ERR_UNKNOWN_NETWORK_TYPE, { type });
+    }
+  }
+}
+
+
+import type {
+  TransactOpts,
+  IconTransactOpts,
+  EvmTransactOpts,
+} from './transaction';
+
+export const formatTransactOpts = (type: NetworkType, options: TransactOpts) => {
+  const common = ['from', 'value', 'estmate', 'signature'];
+  switch (type) {
+    case 'icon': {
+      const props = common.concat(['stepLimit', 'timestamp']);
+      return Object.fromEntries(Object.entries(options).filter(([name]) => props.includes(name))) as IconTransactOpts;
+    }
+    case 'eth2':
+    case 'bsc': {
+      const props = common.concat(['gasPrice', 'gasLimit', 'gasFeeCap', 'gasTipCap', 'nonce']);
+      return Object.fromEntries(Object.entries(options).filter(([name]) => props.includes(name))) as EvmTransactOpts;
+    }
+    default:
+      throw new BTPError(ERR_UNKNOWN_NETWORK_TYPE, { type });
   }
 }
