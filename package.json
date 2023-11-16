@@ -9,7 +9,8 @@
   ],
   "scripts": {
     "test": "lerna run test --stream",
-    "build": "lerna run build --stream"
+    "build": "lerna run build --stream",
+    "lint": "lerna run lint --stream --parallel"
   },
   "devDependencies": {
     "lerna": "^7.4.2"

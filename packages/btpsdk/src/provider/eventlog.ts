@@ -1,26 +1,38 @@
 import { WebSocket as WebSock } from "./ws";
+import { formatEventLog } from './formatter';
+import { getLogger } from '../utils/log';
 import type {
   Network,
   NetworkType,
-} from '../types';
+} from './provider';
 
 import {
   EventEmitter,
   EventListener,
-  LogFilter,
   WebSocketCreator,
+  WebSocketLike,
 } from './index';
 
-import {
-  formatEventLog,
-} from '../formatter';
 
 import {
   BTPError,
   ERR_NOT_IMPLEMENTED,
-} from '../../error/index';
+  ERR_ILLEGAL_STATE,
+  ERR_CLOSED_WS,
+} from '../error/index';
 
-export interface LogEvent {
+const log = getLogger('eventlog');
+
+export interface LogFilter {
+  network: Network;
+  service: string;
+  event: {
+    name: string;
+    params?: Map<string, any> | Array<Map<string, any>>;
+  }
+}
+
+export interface EventLog {
   block: {
     id: string;
     height: number;
@@ -36,8 +48,10 @@ export interface LogEvent {
   }
 }
 
-export class LogEmitter implements EventEmitter {
+export class LogEmitter implements EventEmitter<LogFilter> {
   #url: string | WebSocketCreator;
+  #ws?: WebSocketLike;
+  #listener?: EventListener;
 
   constructor(url: string | WebSocketCreator) {
     this.#url = url;
@@ -53,21 +67,20 @@ export class LogEmitter implements EventEmitter {
 
   #on(name: string, filter: LogFilter, listener: EventListener, once: boolean): this {
     const ws = typeof(this.#url) === 'string'
-      ? new WebSock(`${this.#url}/monitor/${filter.service}/event`)
+      ? new WebSock(`${this.#url}/monitor/${filter.service}/event`) as WebSocketLike
       : this.#url();
+    this.#ws = ws;
+    this.#listener = listener;
+
     ws.onopen = () => {
       ws.send(JSON.stringify({
-        network: typeof(filter.network) == 'string' ? filter.network : filter.network.name,
+        network: filter.network.name,
         service: filter.service,
         nameToParams: {
           [filter.event.name]: filter.event.params ?? null
         }
       }));
     };
-
-    if (typeof(filter.network) == 'string') {
-      filter.network = { name: filter.network, type: 'icon' };
-    }
 
     ws.onmessage = (event: { data: ArrayBuffer }) => {
       const payload = JSON.parse(event.data.toString());
@@ -77,14 +90,23 @@ export class LogEmitter implements EventEmitter {
         return;
       }
       // TODO supports to fire finalized events 
-      listener(undefined, formatEventLog((filter.network as Network).type as NetworkType, payload));
+      if (this.#listener != null) {
+        this.#listener(undefined, formatEventLog(filter.network.type as NetworkType, payload));
+      }
       if (once) {
-        ws.close();
+        ws.close(1000);
       }
     };
 
-    ws.onclose = (ev: any) => {
-      console.error(ev.code, ev.reason);
+    ws.onclose = (ev: { code: number, reason: string }) => {
+      if (ev.code !== 1000 && this.#listener != null) {
+        log.warn(`ws connection closed - code(${ev.code}) reason(${ev.reason})`);
+        this.#listener(new BTPError(ERR_CLOSED_WS, ev));
+      }
+      if (this.#ws != null && this.#ws === ws) {
+        this.#ws = undefined;
+        this.#listener = undefined;
+      }
     };
 
     ws.onerror = (ev: any) => {
@@ -98,7 +120,15 @@ export class LogEmitter implements EventEmitter {
   off(name: string): void;
   off(name: string, listener: EventListener): void;
   off(name: string, listener?: EventListener): void {
-    throw new Error('TODO');
+    if (listener != null) {
+      if (this.#listener !== listener) {
+        throw new BTPError(ERR_ILLEGAL_STATE);
+      }
+    }
+    if (this.#ws == null) {
+      throw new BTPError(ERR_ILLEGAL_STATE);
+    }
+    this.#ws.close(1000);
   }
 
 }

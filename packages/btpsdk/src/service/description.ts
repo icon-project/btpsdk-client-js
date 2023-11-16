@@ -2,13 +2,23 @@ import {
   assert
 } from "../error/index";
 
-import type {
-  ServiceDescription,
-} from "./types";
+export interface ServiceDescription {
+  name: string;
+  networks: Array<Network>;
+  methods: Array<MethodDescription>;
+}
+
+export interface MethodDescription {
+  name: string;
+  networks: Array<string>;
+  // TODO add properties for validating value
+  inputs: Array<string>;
+  readonly: boolean;
+}
 
 import type {
   Network,
-} from "../provider/types";
+} from "../provider/index";
 
 import {
   getLogger,
@@ -34,7 +44,7 @@ const resolver = {
   inputs: {
     post: (o: any) => {
       const params = o['requestBody']['content']['application/json']['schema']['properties']['params']['properties'];
-      return !!params ? Object.keys(params) : [];
+      return params ? Object.keys(params) : [];
     },
     get: (o: any) => {
       const params = o['parameters'].find((parameter: any) => parameter.name === 'request');
@@ -47,7 +57,7 @@ const resolver = {
 function _networks(doc: any): Array<Network> {
   return doc.tags.filter((tag: any) => tag.description.startsWith('NetworkType:'))
   .map((tag: any) => {
-    return /\{([^)]+)\}/.exec(tag.description)!![1]
+    return /\{([^)]+)\}/.exec(tag.description)![1]
     .split(',').map(name => { return { type: tag.name, name } })
   }).flat();
 }
@@ -84,13 +94,13 @@ export class OpenAPIDocument {
       // assumes that an api has only either `POST` or `GET`
       assert(!(!!_key.post && !!_key.get) && (!!_key.post || !!_key.get));
       let props;
-      if (!!_key.post) {
+      if (_key.post) {
         props = {
           inputs: resolver.inputs.post(_key.post),
           networks: resolver.networks.post(_key.post),
           readonly: false,
         }
-      } else if(!!_key.get) {
+      } else if(_key.get) {
         props = {
           inputs: resolver.inputs.get(_key.get),
           networks: resolver.networks.get(_key.get),
@@ -107,9 +117,9 @@ export class OpenAPIDocument {
     }) ?? [];
 
     const dns = _networks(this.#doc);
-    let ret = new Array<Network>();
+    const ret = new Array<Network>();
     for (const n of networks) {
-      ret.push(dns.find(dn => dn.name == n)!!);
+      ret.push(dns.find(dn => dn.name == n)!);
     }
 
     return {

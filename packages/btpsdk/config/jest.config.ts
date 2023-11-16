@@ -7,12 +7,34 @@ const config: Config = {
   rootDir: '../',
   collectCoverage: true,
   setupFiles: [ '<rootDir>/config/jest.setup.ts' ],
+  // moduleFileExtensions: [
+  //   "js",
+  //   "ts"
+  // ],
+
   transform: {
-    '^.+\\.ts?$': [
+    '^.+\\.[jt]s?$': [
       'ts-jest',
       { tsconfig: './config/tsconfig.cjs.json' },
     ],
-  }
+  },
+  moduleNameMapper: {
+    '(.+)\\.js': '$1'
+  },
+
+  // transform: {
+  //   '\\.[jt]sx?$': 'ts-jest'
+  // },
+  // globals: {
+  //   'ts-jest': {
+  //     useESM: true
+  //   }
+  // },
+  // moduleNameMapper: {
+  //   '(.+)\\.js': '$1'
+  // },
+  // extensionsToTreatAsEsm: ['.ts']
+
 };
 
 export default config;

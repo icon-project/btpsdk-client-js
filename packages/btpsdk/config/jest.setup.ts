@@ -1,1 +1,1 @@
-process.env.BTP_LOG_LEVEL = 'error';
+process.env.BTP_LOG_LEVEL = 'debug';

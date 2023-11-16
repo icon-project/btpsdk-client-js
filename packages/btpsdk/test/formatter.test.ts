@@ -1,5 +1,6 @@
 import { read } from './utils';
-import { NetworkType } from '../src/provider/types';
+import { NetworkType } from '../src/provider/index';
+import { BTPError, ERR_UNKNOWN_NETWORK_TYPE } from '../src/error/index';
 import {
   formatReceipt,
   formatEventLog,
@@ -62,6 +63,15 @@ describe('Test data converter/formatter for network-specific data formats', () =
         params: eventlog.Params,
       }
     });
+  });
+
+  it('try to formatting data with unknown network type', () => {
+    const type = 'unknown' as NetworkType;
+    expect(() => { formatReceipt(type, JSON.parse(read('receipt.icon.json').toString())) })
+      .toThrow(new BTPError(ERR_UNKNOWN_NETWORK_TYPE, { type }));
+
+    expect(() => { formatEventLog(type, JSON.parse(read('eventlog.icon.json').toString())) })
+      .toThrow(new BTPError(ERR_UNKNOWN_NETWORK_TYPE, { type }));
   });
 
 });

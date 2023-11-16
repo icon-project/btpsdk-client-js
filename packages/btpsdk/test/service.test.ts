@@ -1,9 +1,7 @@
 import {
   ServiceDescription,
-} from '../src/service/types';
-import {
   Service,
-} from '../src/service/service';
+} from '../src/service/index';
 
 import {
   BTPProvider,

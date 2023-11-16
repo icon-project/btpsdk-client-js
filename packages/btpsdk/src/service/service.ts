@@ -4,10 +4,11 @@ import type {
   TransactOpts,
   CallOpts,
   Network,
-} from "../provider/types";
+} from "../provider/index";
+
 import type {
   ServiceDescription,
-} from "./types";
+} from "./description";
 
 import {
   BTPError,
@@ -17,7 +18,7 @@ import {
 
 import type {
   EventListener,
-} from "../provider/event/index";
+} from "../provider/index";
 
 import { getLogger } from '../utils/log';
 const log = getLogger('service');
@@ -113,7 +114,7 @@ export class BaseService {
         name,
         params: filter,
       }
-    }, listener!!);
+    }, listener!);
     return this;
   }
 
@@ -133,7 +134,7 @@ export class BaseService {
         name,
         params: filter,
       }
-    }, listener!!);
+    }, listener!);
     return this;
   }
 
@@ -187,7 +188,7 @@ export class BaseContract {
             })(this.provider, method.name)
           : ((provider: Provider, name: string) => {
             return async (...args: Array<any>): Promise<PendingTransaction> => {
-              console.log('service transact args:', args);
+              log.debug(`transaction args - args(${JSON.stringify(args)})`);
               const params = args[0];
               const options = args.length > 1 ? args[1] : {};
               return provider.transact(this.network, name, method.name, params, options);
@@ -231,7 +232,7 @@ export class BaseContract {
         name,
         params: filter,
       }
-    }, listener!!);
+    }, listener!);
     return this;
   }
 
@@ -251,7 +252,7 @@ export class BaseContract {
         name,
         params: filter,
       }
-    }, listener!!);
+    }, listener!);
     return this;
   }
 

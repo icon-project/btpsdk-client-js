@@ -3,8 +3,8 @@ export function qs (kvs: { [key: string]: any }, ns: string = '') {
   let r: string = '';
   for (const k in kvs) {
     if (typeof(kvs[k]) === 'string' || typeof(kvs[k]) === 'number') {
-      let key: string = ns.length > 0 ? `${ns}[${k}]` : `${k}`;
-      let val: string = kvs[k].toString();
+      const key: string = ns.length > 0 ? `${ns}[${k}]` : `${k}`;
+      const val: string = (kvs[k] as string | number).toString();
       r += r.length > 0 ? '&' : '';
       r += `${key}=${val}`;
     } else if (kvs[k] instanceof Array) {

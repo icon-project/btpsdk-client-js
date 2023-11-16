@@ -1,23 +1,68 @@
 import {
-  assert,
   BTPError,
   ERR_TIMEOUT,
 } from "../error/index";
 
 import type {
-  Provider,
-  Receipt,
   Network,
-} from "./types";
+  Provider,
+} from './provider';
+
+import type {
+  Signer,
+} from './signer';
+
+export type Receipt = IconReceipt | EthReceipt;
+
+export interface BaseReceipt {
+  block: {
+    id: string,
+    height: number;
+  }
+}
+
+export interface IconReceipt extends BaseReceipt {
+}
+
+export interface EthReceipt extends BaseReceipt {
+}
 
 import { getLogger } from '../utils/log';
+
 const log = getLogger('transaction');
+
+export type TransactOpts = IconTransactOpts | EvmTransactOpts;
+
+export interface BaseTransactOpts {
+  signer?: Signer;
+  signature?: string;
+
+  from?: string;
+  value?: number
+  estimate?: boolean;
+}
+
+export interface IconTransactOpts extends BaseTransactOpts {
+  stepLimit?: number;
+  timestamp?: number;
+}
+
+export interface EvmTransactOpts extends BaseTransactOpts {
+  gasPrice?: number;
+  gasLimit?: number;
+  gasFeeCap?: number;
+  gasTipCap?: number;
+  nonce?: number;
+}
+
+export type CallOpts = {
+  from: string;
+};
 
 export class PendingTransaction {
   #provider: Provider;
   #network: Network;
   #id: string;
-  #receipt: Receipt | null = null;
 
   constructor(provider: Provider, network: Network, id: string) {
     this.#provider = provider;
@@ -35,47 +80,41 @@ export class PendingTransaction {
 
   async wait(status: 'created' | 'finalized' = 'created', timeout: number = 0): Promise<Receipt> {
     let onFinalized: null | ((error: BTPError) => void);
-    return new Promise(async (resolve, reject) => {
-      if (timeout > 0) {
-        log.debug(`set timer for waiting for receipt - txid(${this.#id})`);
-        setTimeout(() => {
-          log.debug(`timeout - txid(${this.#id})`);
-          if (onFinalized != null) {
-            this.#provider.off('block', onFinalized);
-            onFinalized = null;
-          }
-          reject(new BTPError(ERR_TIMEOUT));
-        }, timeout);
-      }
 
-      if (this.#receipt == null) {
-        try {
-          this.#receipt = await this.#provider.getTransactionResult(this.#network, this.#id);
-        } catch (error) {
-          log.debug(`fail to get receipt - network(${this.#network}) txid(${this.#id}) error(${error})`)
-          assert(error instanceof BTPError, 'TODO handle transaction result error');
-          throw error;
+    const receipt = await this.#provider.getTransactionResult(this.#network, this.#id);
+    if (status === 'created') {
+      return receipt;
+    } else if (status === 'finalized') {
+      return new Promise((resolve, reject) => {
+        if (timeout > 0) {
+          setTimeout(() => {
+            log.debug(`timeout - txid(${this.#id})`);
+            if (onFinalized != null) {
+              this.#provider.off('block', onFinalized);
+              onFinalized = null;
+            }
+            return reject(new BTPError(ERR_TIMEOUT));
+          }, timeout);
         }
-      }
 
-      if (status === 'created') {
-        resolve(this.#receipt!);
-      } else if (status === 'finalized') {
         onFinalized = (error: BTPError) => {
           if (error != null) {
-            reject(error);
+            return reject(error);
           } else {
-            resolve(this.#receipt!);
+            return resolve(receipt);
           }
         };
 
         this.#provider.once('block', {
           network: this.#network,
           status,
-          id: this.#receipt!.block.id,
-          height: this.#receipt!.block.height
+          id: receipt.block.id,
+          height: receipt.block.height
         }, onFinalized);
-      }
-    });
+
+      });
+    } else {
+      throw new Error();
+    }
   }
 }

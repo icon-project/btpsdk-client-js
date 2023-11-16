@@ -19,9 +19,9 @@ const format = (label: string) => {
   );
 }
 
-const LOG_LEVEL = process.env.BTP_LOG_LEVEL || 'debug';
+const LOG_LEVEL = process.env.BTP_LOG_LEVEL || 'error';
 
-let OPTIONS = {
+const OPTIONS = {
   level: LOG_LEVEL,
   transports: [ new winston.transports.Console() ],
   format: format('unknown'),

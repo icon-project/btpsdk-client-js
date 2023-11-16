@@ -8,11 +8,8 @@ import {
   TransactOpts,
   Network,
   PendingTransaction,
-} from "../../src/provider";
-
-import {
   EventListener,
-} from '../../src/provider/event';
+} from "../../src/provider";
 
 import {
   ServiceDescription,

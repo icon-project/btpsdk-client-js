@@ -1,4 +1,4 @@
-import { WebSocketLike } from "../../provider/event";
+import { WebSocketLike } from "../../src/provider/event";
 
 export class WebSocket implements WebSocketLike {
   onopen: null | ((ev: any) => any);

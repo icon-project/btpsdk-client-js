@@ -1,7 +1,7 @@
 
-export interface ErrorDescription {
+export interface ErrorDescription<T = any> {
   code: number;
-  message: string | ErrorTemplateFunc;
+  message: string | ErrorTemplateFunc<T>;
 }
 
 export const ERR_NOT_IMPLEMENTED = {
@@ -48,6 +48,16 @@ export const ERR_INVALID_FORMAT = {
   message: ({ name }: { name: string }) => `invalid ${name} format`
 }
 
+export const ERR_ILLEGAL_STATE = {
+  code: 206,
+  message: 'illegal state'
+}
+
+export const ERR_CLOSED_WS = {
+  code: 207,
+  message: ({ code, reason }: { code: number, reason: string }) => `websocket connection has closed - code(${code}) reason(${reason})`
+}
+
 export const ERR_SERVER_REJECT = {
   code: 300,
   message: 'server response code(%statusCode%), message(%message%) for operation(%operation%)'
@@ -58,5 +68,5 @@ export const ERR_INCONSISTENT_BLOCK = {
   message: 'inconsistent block'
 }
 
-type ErrorTemplateFunc = (args: any) => string;
+type ErrorTemplateFunc<T> = (args: T) => string;
 

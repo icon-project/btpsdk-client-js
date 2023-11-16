@@ -24,7 +24,7 @@ describe("Test events", () => {
       const emitter = new BlockFinalityEmitter(provider, { interval: 10 });
       setTimeout(() => {
         emitter.once('block', {
-          network: 'icon:berlin',
+          network: { name: 'icon:berlin', type: 'icon' },
           status: 'finalized',
           id: blockchain.created().id,
           height: blockchain.created().height
@@ -39,7 +39,7 @@ describe("Test events", () => {
       const emitter = new BlockFinalityEmitter(provider, { interval: 10 });
       setTimeout(() => {
         emitter.once('block', {
-          network: 'icon:berlin',
+          network: { name: 'icon:berlin', type: 'icon' },
           status: 'finalized',
           id: blockchain.created().id,
           height: blockchain.created().height + 1
