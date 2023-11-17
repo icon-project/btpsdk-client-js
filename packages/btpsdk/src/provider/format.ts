@@ -229,14 +229,55 @@ export const formatEventLog = (type: NetworkType, eventLog: BTPEventLog): EventL
 import type { Receipt } from './transaction';
 
 type IconReceipt = {
+  Raw: {
+    to: string;
+    cumulativeStepUsed: string;
+    stepUsed: string;
+    stepPrice: string;
+    eventLogs: Array<{
+      scoreAddress: string;
+      indexed: Array<string>;
+      data: Array<string>;
+    }>;
+    logsBloom: string;
+    status: string;
+    blockHash: string;
+    blockHeight: string;
+    txIndex: string;
+    txHash: string;
+  },
   BlockHash: string;
   BlockHeight: number;
+  Failure: null;
 };
+
 type EvmReceipt = {
   Raw: {
+    type: string;
+    root: string;
+    status: string;
+    cumulativeGasUsed: string;
+    logsBloom: string;
+    logs: Array<{
+      address: string;
+      topics: Array<string>;
+      data: string;
+      blockNumber: string;
+      transactionHash: string;
+      transactionIndex: string;
+      blockHash: string
+      logIndex: string;
+      removed: false;
+    }>;
+    transactionHash: string;
+    contractAddress: string;
+    gasUsed: string;
+    effectiveGasPrice: string;
     blockHash: string;
     blockNumber: string;
-  }
+    transactionIndex: string;
+  },
+  Failure: null;
 }
 
 export const formatReceipt = (type: NetworkType, value: any): Receipt => {
@@ -249,7 +290,11 @@ export const formatReceipt = (type: NetworkType, value: any): Receipt => {
         block: {
           id: receipt.BlockHash,
           height: receipt.BlockHeight
-        }
+        },
+        cumulativeUsed: receipt.Raw.cumulativeStepUsed,
+        used: receipt.Raw.stepUsed,
+        price: receipt.Raw.stepPrice,
+        logs: receipt.Raw.eventLogs,
       }
     }
     case 'eth2':
@@ -262,7 +307,11 @@ export const formatReceipt = (type: NetworkType, value: any): Receipt => {
         block: {
           id: receipt.Raw.blockHash,
           height: Number.parseInt(receipt.Raw.blockNumber, 16),
-        }
+        },
+        cumulativeUsed: receipt.Raw.cumulativeGasUsed,
+        used: receipt.Raw.gasUsed,
+        price: receipt.Raw.effectiveGasPrice,
+        logs: receipt.Raw.logs,
       }
     }
     default: {

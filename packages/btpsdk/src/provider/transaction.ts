@@ -16,15 +16,34 @@ export type Receipt = IconReceipt | EthReceipt;
 
 export interface BaseReceipt {
   block: {
-    id: string,
+    id: string;
     height: number;
-  }
+  },
+  cumulativeUsed: string;
+  used: string;
+  price: string;
 }
 
 export interface IconReceipt extends BaseReceipt {
+  logs: Array<{
+    scoreAddress: string;
+    indexed: Array<string>;
+    data: Array<string>;
+  }>;
 }
 
 export interface EthReceipt extends BaseReceipt {
+  logs: Array<{
+    address: string;
+    topics: Array<string>;
+    data: string;
+    blockHash: string;
+    blockNumber: string;
+    transactionHash: string;
+    transactionIndex: string;
+    logIndex: string;
+    removed: boolean;
+  }>;
 }
 
 import { getLogger } from '../utils/log';
