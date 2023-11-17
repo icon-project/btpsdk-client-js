@@ -1,12 +1,9 @@
 import fetch from 'cross-fetch';
 import {
-  join,
   merge
 } from '../utils/index';
 
 import {
-  //BTPError,
-  //ERR_INVALID_FORMAT,
   ServerRejectError,
 } from '../error/index';
 
@@ -31,7 +28,8 @@ export class DefaultHttpProvider implements HttpProvider {
   #options: DefaultOptions;
 
   constructor(baseUrl: string | HttpRequestCreator, options?: DefaultOptions) {
-    this.#baseUrl = baseUrl;
+    this.#baseUrl = typeof(baseUrl) === 'string' && baseUrl.endsWith('/')
+      ? baseUrl.slice(0, baseUrl.length) : baseUrl;
     this.#options = options ?? {};
     log.debug(`create http provider - baseUrl(${typeof(this.#baseUrl) === 'string'
       ? this.#baseUrl : this.#baseUrl.baseUrl}) defaultOptions(${JSON.stringify(this.#options)})`);
@@ -41,22 +39,13 @@ export class DefaultHttpProvider implements HttpProvider {
     return typeof(this.#baseUrl) === 'string' ? this.#baseUrl : this.#baseUrl.baseUrl;
   }
 
-
-  // TODO improve error handling...
   async request<T = { [key: string]: any }>(path: string, options?: RequestInit): Promise<T> {
-    log.debug(`request - path(${path}) options(${options ?? {}})`);
+    log.log(`request - path(${path}) options(${options ?? {}})`);
     const opt = (options != null ? merge(this.#options, options) : this.#options) as RequestInit;
-    log.debug(`options(${JSON.stringify(opt)})`)
-    const response = typeof(this.#baseUrl) === 'string' ? await fetch(join(this.#baseUrl, path), opt) : await this.#baseUrl(path, opt);
-    //console.log('length:', response.headers.get('content-length'))
+    const response = typeof(this.#baseUrl) === 'string' ? await fetch(this.#baseUrl.concat(path), opt) : await this.#baseUrl(path, opt);
     if (!response.ok) {
       throw new ServerRejectError({ code: response.status, message: await response.json() })
     }
-
-    // const contentType = response.headers.get('content-type');
-    // if (contentType !== 'application/json') {
-    //   throw new BTPError(ERR_INVALID_FORMAT, { name: `content type of response for \`/${path}\`` });
-    // }
-    return response.json();
+    return (await response.json()) as T;
   }
 }
