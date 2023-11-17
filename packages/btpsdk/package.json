@@ -13,6 +13,7 @@
     "build:esm": "tsc --project ./config/tsconfig.esm.json",
     "dist": "rollup -c ./config/rollup.config.mjs && npx uglifyjs ./dist/btp.js -o ./dist/btp.min.js && gzip -k9f ./dist/btp.min.js",
     "lint": "eslint .",
+    "doc": "npm run build:cjs && jsdoc ./lib.cjs/*** -d doc",
     "clean": "rm -rf dist"
   },
   "author": "",
@@ -23,6 +24,7 @@
     "ws": "^8.14.2"
   },
   "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.2.3",
     "@types/jest": "^29.5.7",
     "@types/ws": "^8.5.8",
     "@typescript-eslint/eslint-plugin": "^6.11.0",
@@ -30,6 +32,7 @@
     "eslint": "^8.53.0",
     "jest": "^29.7.0",
     "jsdoc": "^4.0.2",
+    "rollup": "^4.4.1",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.1",
     "typescript": "^5.2.2",
