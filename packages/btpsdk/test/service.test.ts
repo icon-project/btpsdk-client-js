@@ -57,4 +57,11 @@ describe('service', () => {
     expect(service.at !== undefined).toBeTruthy();
     expect(service.at !== service.getFunction('at') as unknown).toBeTruthy();
   });
+
+  it('access unknown method', () => {
+    const provider = getTestProvider();
+    const service = new Service(provider, desc);
+    expect(() => service.unknown())
+    .toThrow(TypeError);
+  });
 });

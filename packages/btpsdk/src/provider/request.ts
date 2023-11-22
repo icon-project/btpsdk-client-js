@@ -1,3 +1,25 @@
+/**
+ * Interface for http client
+ *
+ * @interface HttpProvider
+ */
+/**
+ * endpoint of http(s) server
+ *
+ * @name HttpProvider#baseUrl
+ * @type {string}
+ * @readonly
+ */
+/**
+ * @function
+ * @name HttpProvider#request
+ *
+ * @param {string} path
+ * @param {?RequestInit} options - See, {@link https://microsoft.github.io/PowerBI-JavaScript/interfaces/_node_modules_typedoc_node_modules_typescript_lib_lib_dom_d_.requestinit.html}
+ *
+ * @async
+ * @return {T}
+ */
 import fetch from 'cross-fetch';
 import {
   merge
@@ -16,17 +38,28 @@ export type HttpRequestCreator = {
 }
 
 export interface HttpProvider {
-  baseUrl: string;
+  readonly baseUrl: string;
   request<T>(path: string, options?: RequestInit): Promise<T>;
 }
 
 import { getLogger } from '../utils/log';
 const log = getLogger('request');
 
+/**
+ * Http Provider Implementation
+ *
+ * @implements {HttpProvider}
+ */
 export class DefaultHttpProvider implements HttpProvider {
   #baseUrl: string | HttpRequestCreator;
   #options: DefaultOptions;
 
+  /**
+   * Create DefaultHttpProvider object
+   *
+   * @param {string} baseUrl
+   * @param {?Pick<RequestInit, 'cache' | 'credentials' | 'headers' | 'integrity' | 'keepalive' | 'method' | 'mode' | 'redirect' | 'referrer' | 'referrerPolicy' | 'signal'>} options - default options for `request`
+   */
   constructor(baseUrl: string | HttpRequestCreator, options?: DefaultOptions) {
     this.#baseUrl = typeof(baseUrl) === 'string' && baseUrl.endsWith('/')
       ? baseUrl.slice(0, baseUrl.length) : baseUrl;

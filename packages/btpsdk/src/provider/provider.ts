@@ -1,6 +1,122 @@
-// import type {
-//   EventEmitter,
-// } from './event/index.js';
+/**
+ * Interface for btpsdk client
+ *
+ * @interface Provider
+ * @memberof @iconfoundation/btpsdk
+ */
+/**
+ * Returns available btp services
+ *
+ * @function
+ * @name Provider#services
+ * @async
+ * @returns {Array<Service>}
+ */
+/**
+ * Returns btp service
+ *
+ * @function
+ * @name Provider#service
+ * @param {string} service name
+ * @async
+ * @return {Promise<Service>}
+ * @throws {ERR_UNKNOWN_SERVICE}
+ */
+/**
+ * Send service transaction
+ *
+ * @function
+ * @name Provider#transact
+ * @param {string|Network} network
+ * @param {string} service
+ * @param {string} method
+ * @param {Map<string, any>}
+ * @param {TransactOpts}
+ *
+ * @async
+ * @return {PendingTransaction}
+ *
+ */
+/**
+ * Call service method
+ *
+ * @function
+ * @name Provider#call
+ * @param {string|Network} network
+ * @param {string} service
+ * @param {string} method
+ * @param {Map<string, any>}
+ * @param {CallOpts}
+ *
+ * @async
+ * @return {Object}
+ */
+/**
+ * Returns receipt for the transaction
+ *
+ * @function
+ * @name Provider#getTransactionResult
+ * @param {Network}
+ * @param {string} id - transaction id
+ *
+ * @async
+ * @return {Receipt}
+ */
+/**
+ * Returns finality of the block on network
+ *
+ * @function
+ * @name Provider#getBlockFinality
+ * @param {string} network
+ * @param {string} block id
+ * @param {number} block height
+ *
+ * @async
+ * @return {boolean}
+ */
+/**
+ * Add an event listener for the event.
+ *
+ * @function
+ * @name Provider#on
+ * @param {string} type - event type
+ * @param {ProviderFilter} filter
+ * @param {EventListener} listener
+ * @return {this}
+ */
+/**
+ * Add an event listener for the event, but remove the listener after it is fired once.
+ *
+ * @function
+ * @name Provider#once
+ *
+ * @param {string} type - event type
+ * @param {ProviderFilter} filter
+ * @param {EventListener} listener
+ */
+/**
+ * @typedef {Object} Network
+ * @property {string} name
+ * @property {string} type
+ */
+/**
+ * @typedef {ProviderLogFilter|ProviderBlockFilter} ProviderFilter
+ * @memberof @iconfoundation/btpsdk
+ */
+/**
+ * @typedef {Object} ProviderLogFilter
+ * @property {string|Network} network - network name or network object
+ * @property {string} service - service name
+ * @memberof @iconfoundation/btpsdk
+ */
+/**
+ * @typedef {Object} ProviderBlockFilter
+ * @property {string|Network} network - network name or network object
+ * @property {string} status
+ * @property {string} id - block id
+ * @property {number} height - block height
+ * @memberof @iconfoundation/btpsdk
+ */
 
 import type { ServiceDescription } from '../service/index.js';
 import type {
@@ -104,16 +220,20 @@ export interface EventEmitter<T> {
 }
 
 export interface Provider extends EventEmitter<ProviderFilter> {
+  networks(): Promise<Array<Network>>;
   services(): Promise<Array<Service>>;
   service(nameOrDesc: string | ServiceDescription): Promise<Service>;
-  transact(network: Network | string, service: string, method: string, params: { [key: string]: any }, opts?: TransactOpts): Promise<PendingTransaction>;
-  call(network: Network | string, service: string, method: string, params: { [key: string]: any }, opts: CallOpts): Promise<any>;
+  transact(network: Network | string, service: string, method: string, params: Map<string, any>, opts?: TransactOpts): Promise<PendingTransaction>;
+  call(network: Network | string, service: string, method: string, params: Map<string, any>, opts: CallOpts): Promise<any>;
   getTransactionResult(network: Network, id: string): Promise<Receipt>;
   getBlockFinality(network: string, id: string, height: number): Promise<boolean>;
 }
 
 /**
  * BTPProvider
+ *
+ * @implements {Provider}
+ * @memberof @iconfoundation/btpsdk
  */
 export class BTPProvider implements Provider {
   #baseUrl: string;
@@ -155,40 +275,16 @@ export class BTPProvider implements Provider {
     return formatNetworks(await this.#client.request('/api'));
   }
 
-  /**
-   * Returns all btp services
-   *
-   * @return {Promise<Array<Service>>} service proxy
-   */
   async services(): Promise<Array<Service>> {
     return (await this.#descriptions()).map(desc => new Service(this, desc));
   }
 
-  /**
-   * Returns btp service
-   *
-   * @param {string} service name
-   * @return {Promise<Service>}
-   * @throws {ERR_UNKNOWN_SERVICE}
-   */
   async service(name: string): Promise<Service> {
     const desc = (await this.#descriptions()).find(desc => desc.name === name);
     return new Service(this, desc ?? (() => { throw new BTPError(ERR_UNKNOWN_SERVICE, { name }) })());
   }
 
-  /**
-   * Send service transaction
-   *
-   * @param {string|Network} network
-   * @param {string} service
-   * @param {string} method
-   * @param {Map<string, any>}
-   * @param {TransactOpts}
-   *
-   * @return {Promise<PendingTransaction>}
-   *
-   */
-  async transact(network: string | Network, service: string, method: string, params: { [key: string]: any }, options: TransactOpts): Promise<PendingTransaction> {
+  async transact(network: string | Network, service: string, method: string, params: Map<string, any>, options: TransactOpts): Promise<PendingTransaction> {
     if (typeof(network) == 'string') {
       network = ((await this.#services()).find(info => info.name === service) ??
         (() => { throw new BTPError(ERR_UNKNOWN_SERVICE, { service }); })()).networks.find(net => net.name === network) ??
@@ -230,18 +326,7 @@ export class BTPProvider implements Provider {
     return new PendingTransaction(this, network, txid);
   }
 
-  /**
-   * Call service method
-   *
-   * @param {string|Network} network
-   * @param {string} service
-   * @param {string} method
-   * @param {Map<string, any>}
-   * @param {CallOpts}
-   *
-   * @return {Promise<PendingTransaction>}
-   */
-  async call(network: Network | string, service: string, method: string, params: { [key: string]: any }, options: CallOpts): Promise<any> {
+  async call(network: Network | string, service: string, method: string, params: Map<string, any>, options: CallOpts): Promise<any> {
     if (typeof(network) == 'string') {
       network = ((await this.#services()).find(info => info.name === service) ??
         (() => { throw new BTPError(ERR_UNKNOWN_SERVICE, { service }); })()).networks.find(net => net.name === network) ??
@@ -257,29 +342,12 @@ export class BTPProvider implements Provider {
     return await this.#client.request<any>(`/api/${service}/${method}?${query}`);
   }
 
-  /**
-   * Returns receipt for the transaction
-   *
-   * @param {Network}
-   * @param {string} id - transaction id
-   *
-   * @return {Promise<Receipt>}
-   */
   async getTransactionResult(network: Network, id: string): Promise<Receipt> {
     const query = qs({ network: network.name });
     const response = await this.#client.request(`/api/result/${id}?${query}`);
     return formatReceipt(network.type, response);
   }
 
-  /**
-   * Returns finality of the block on network
-   *
-   * @param {string} network
-   * @param {string} block id
-   * @param {number} block height
-   *
-   * @return {Promise<boolean>}
-   */
   async getBlockFinality(network: string, id: string, height: number): Promise<boolean> {
     const query = qs({ network, height });
     return await this.#client.request<boolean>(`/api/finality/${id}?${query}`);
@@ -292,13 +360,6 @@ export class BTPProvider implements Provider {
       })();
   }
 
-  /**
-   * Register event listener
-   *
-   * @param {string} event type
-   * @param {ProviderFilter} event filter
-   * @param {EventListener} listener
-   */
   on(type: 'log', filter: ProviderFilter, listener: EventListener): this {
     if (typeof(filter.network) == 'string') {
       this.#network(filter.network)

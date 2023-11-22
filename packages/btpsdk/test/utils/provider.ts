@@ -45,6 +45,10 @@ export class Provider implements IProvider {
     });
   }
 
+  networks(): Promise<Array<Network>> {
+    throw new Error("Method not implements");
+  }
+
   services(): Promise<Array<Service>> {
     throw new Error("Method not implemented.");
   }

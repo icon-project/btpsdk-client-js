@@ -10,7 +10,8 @@
   "scripts": {
     "test": "lerna run test --stream",
     "build": "lerna run build --stream",
-    "lint": "lerna run lint --stream --parallel"
+    "lint": "lerna run lint --stream --parallel",
+    "doc": "npm run build && jsdoc ./packages/btpsdk/lib.cjs/*** ./packages/json-signer/lib.cjs/*** ./packages/web-signer/lib.esm/*** -d doc"
   },
   "devDependencies": {
     "lerna": "^7.4.2"

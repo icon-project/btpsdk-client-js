@@ -1,11 +1,24 @@
 import {
   Signer,
+  Signers,
 } from "@iconfoundation/btpsdk";
 
 import {
   MetaMaskSDK
 } from "@metamask/sdk";
 
+/**
+ * @namespace @iconfoundation/btpsdk-web-signer
+ */
+
+/**
+ * signer class based on metamask chrome extension
+ *
+ * @class
+ * @name WebMetamaskSigner
+ * @implements {Signer}
+ * @memberof @iconfoundation/btpsdk-web-signer
+ */
 export class WebMetamaskSigner implements Signer {
   #metamask: MetaMaskSDK
 
@@ -98,41 +111,29 @@ function getGlobal(): any {
   throw new Error('unable to locate global object');
 }
 
-export class WebHanaSigner implements Signer {
-  #signers: Array<Signer>;
+/**
+ * signer class based on hanawallet chrome extension
+ *
+ * @class
+ * @name WebHanaSigner
+ * @implements {Signer}
+ * @memberof @iconfoundation/btpsdk-web-signer
+ */
+export class WebHanaSigner extends Signers {
   constructor() {
-    this.#signers = [
-      new WebIconHanaSigner(),
-      new WebEvmHanaSigner()
-    ];
-  }
-
-  #signer(type: string): Signer {
-    return this.#signers.find(signer => signer.supports().includes(type))
-      ?? ((): any => { throw new Error('') })();
-  }
-
-  async init(): Promise<void> {
-    await Promise.all(this.#signers.map((signer) => {
-      return signer.init();
-    }));
-  }
-
-  supports(): Array<string> {
-    return ['icon', 'evm', 'eth2', 'bsc'];
-  }
-
-  async address(type: string): Promise<string> {
-    return this.#signer(type).address(type);
-  }
-
-  async sign(type: string, message: string): Promise<string> {
-    console.log('WebHanaSigner::sign()');
-    return this.#signer(type).sign(type, message);
+    super(Array.of(new WebIconHanaSigner(), new WebEvmHanaSigner()));
   }
 }
 
 // test with Hana Wallet v2.14.5
+/**
+ * signer class based on hanawallet chrome extension for icon network
+ *
+ * @class
+ * @name WebIconHanaSigner
+ * @implements {Signer}
+ * @memberof @iconfoundation/btpsdk-web-signer
+ */
 export class WebIconHanaSigner implements Signer {
 
   async init(): Promise<void> {
@@ -211,6 +212,14 @@ export class WebIconHanaSigner implements Signer {
   }
 }
 
+/**
+ * signer class based on hanawallet chrome extension for evm networks
+ *
+ * @class
+ * @name WebEvmHanaSigner
+ * @implements {Signer}
+ * @memberof @iconfoundation/btpsdk-web-signer
+ */
 export class WebEvmHanaSigner implements Signer {
 
   async init(): Promise<void> {

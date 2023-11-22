@@ -1,3 +1,17 @@
+/**
+ * @typedef {Object} EventLog
+ * @property {Object} block
+ * @property {string} block.id
+ * @property {number} block.height
+ * @property {Object} tx
+ * @property {string} tx.id
+ * @property {number} tx.index
+ * @property {number} index
+ * @property {Object} payload
+ * @property {string} playload.name
+ * @property {Map<string, any>} playload.params
+ */
+
 import { WebSocket as WebSock } from "./ws";
 import { formatEventLog } from './format';
 import { getLogger } from '../utils/log';

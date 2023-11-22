@@ -1,3 +1,21 @@
+/**
+ * @typedef IconTransactOpts
+ * @type {object}
+ * @property {?number} stepLimit
+ * @property {?timestamp} timestamp
+ */
+/**
+ * @typedef EvmTransactOpts
+ * @type {object}
+ * @property {?number} gasPrice
+ * @property {?number} gasLimit
+ * @property {?number} gasFeeCap
+ * @property {?number} gasTipCap
+ * @property {?number} nonce
+ */
+/**
+ * @typedef {(IconTransactOpts|EvmTransactOpts)} TransactOpts
+ */
 import {
   BTPError,
   ERR_TIMEOUT,
@@ -78,25 +96,57 @@ export type CallOpts = {
   from?: string;
 };
 
+/**
+ * PendingTransaction class
+ */
 export class PendingTransaction {
   #provider: Provider;
   #network: Network;
   #id: string;
 
+  /**
+   * Create `PendingTransaction` object.
+   *
+   * @param {Provider} provider
+   * @param {Network} network
+   * @param {string} id - transaction id
+   * @constructor
+   */
   constructor(provider: Provider, network: Network, id: string) {
     this.#provider = provider;
     this.#network = network;
     this.#id = id;
   }
 
+  /**
+   * network that created the transaction
+   *
+   * @type {Network}
+   * @readonly
+   */
   get network() {
     return this.#network;
   }
 
+  /**
+   * transaction id
+   *
+   * @type {string}
+   * @readonly
+   */
   get id() {
     return this.#id;
   }
 
+  /**
+   * Returns receipt for the transaction
+   *
+   * @param {'created'|'finalized'} status
+   * @param {number} timeout - milliseconds
+   *
+   * @returns {Receipt}
+   * @async
+   */
   async wait(status: 'created' | 'finalized' = 'created', timeout: number = 0): Promise<Receipt> {
     let onFinalized: null | ((error: BTPError) => void);
 

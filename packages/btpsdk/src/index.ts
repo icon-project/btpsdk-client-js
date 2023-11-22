@@ -1,11 +1,6 @@
-
-
-// export const join = (...parts: Array<string>): string => {
-//   const sep = '/';
-//   return parts.join(sep).replace(new RegExp(sep+'{1,}', 'g'), sep);
-// }
-//
-//
+/**
+ * @namespace @iconfoundation/btpsdk
+ */
 
 import * as btp from "./btp";
 
