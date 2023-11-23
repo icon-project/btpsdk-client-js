@@ -175,7 +175,7 @@ export class Service extends AbstractService<SvcTransactFunc, SvcCallFunc>  {
    */
   at(network: string): Contract {
     const target = findNetworkOrThrowError(this.networks, network);
-    return new Contract(this.provider, target, this.description)
+    return new Contract(this.provider, target, this.desc)
   }
 
   on(network: string, name: string, listener: EventListener): this;
