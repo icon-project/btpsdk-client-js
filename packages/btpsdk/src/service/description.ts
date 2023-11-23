@@ -1,3 +1,56 @@
+/**
+ * Interface for a service description
+ *
+ * @interface ServiceDescription
+ */
+/**
+ * a service name
+ *
+ * @name ServiceDescription#name
+ * @type {string}
+ */
+/**
+ * networks with the service installed
+ *
+ * @name ServiceDescription#networks
+ * @type {Array<Network>}
+ */
+/**
+ * method description for a service
+ *
+ * @name ServiceDescription#methods
+ * @type {Array<MethodDescription>}
+ */
+/**
+ * Interface for a service method
+ *
+ * @interface MethodDescription
+ */
+/**
+ * name of the method
+ *
+ * @name MethodDescription#name
+ * @type {string}
+ */
+/**
+ * network names supporting the method
+ *
+ * @name MethodDescription#networks
+ * @type {string}
+ */
+/**
+ * parameter names for the method
+ *
+ * @name MethodDescription#inputs
+ * @type {Array<string>}
+ */
+
+/**
+ * read-only or not for the method
+ *
+ * @name MethodDescription#readonly
+ * @type {boolean}
+ */
 import {
   assert
 } from "../error/index";
@@ -19,12 +72,6 @@ export interface MethodDescription {
 import type {
   Network,
 } from "../provider/index";
-
-import {
-  getLogger,
-} from "../utils/log";
-
-const log = getLogger('service_description');
 
 import {
   BTPError,
@@ -62,6 +109,7 @@ function _networks(doc: any): Array<Network> {
   }).flat();
 }
 
+// deprecated...
 export class OpenAPIDocument {
   #doc: any;
 
@@ -80,7 +128,6 @@ export class OpenAPIDocument {
   }
 
   service(name: string): ServiceDescription {
-    log.debug(`service(${name})`);
     const prefix = `/api/${name}/`;
     const regexp = new RegExp(`^${prefix}`);
     const apis = Object.entries(this.#doc['paths']);

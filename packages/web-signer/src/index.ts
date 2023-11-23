@@ -121,7 +121,7 @@ function getGlobal(): any {
  */
 export class WebHanaSigner extends Signers {
   constructor() {
-    super(Array.of(new WebIconHanaSigner(), new WebEvmHanaSigner()));
+    super(new WebIconHanaSigner(), new WebEvmHanaSigner());
   }
 }
 

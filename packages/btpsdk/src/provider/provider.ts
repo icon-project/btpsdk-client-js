@@ -5,6 +5,14 @@
  * @memberof @iconfoundation/btpsdk
  */
 /**
+ * Returns all btp networks
+ *
+ * @function
+ * @name Provider#networks
+ * @async
+ * @return {Array<Network>}
+ */
+/**
  * Returns available btp services
  *
  * @function
@@ -19,7 +27,7 @@
  * @name Provider#service
  * @param {string} service name
  * @async
- * @return {Promise<Service>}
+ * @return {Service}
  * @throws {ERR_UNKNOWN_SERVICE}
  */
 /**
@@ -95,9 +103,18 @@
  * @param {EventListener} listener
  */
 /**
+ * Remove an event listener
+ *
+ * @function
+ * @name Provider#off
+ * @param {EventType} type
+ * @param {EventListener} [listener]
+ */
+/**
  * @typedef {Object} Network
  * @property {string} name
  * @property {string} type
+ * @memberof @iconfoundation/btpsdk
  */
 /**
  * @typedef {ProviderLogFilter|ProviderBlockFilter} ProviderFilter
@@ -115,6 +132,13 @@
  * @property {string} status
  * @property {string} id - block id
  * @property {number} height - block height
+ * @memberof @iconfoundation/btpsdk
+ */
+/**
+ * event listener
+ *
+ * @callback EventListener
+ * @param {Array<any>} ...args
  * @memberof @iconfoundation/btpsdk
  */
 
@@ -148,9 +172,8 @@ import { Service } from '../service/index';
 
 import {
   HttpProvider,
-  DefaultHttpProvider,
-  DefaultOptions,
-  HttpRequestCreator,
+  BTPHttpProvider,
+  DefaultHttpOpts,
 } from './request';
 
 import {
@@ -159,29 +182,15 @@ import {
   ERR_UNKNOWN_SERVICE,
 } from '../error/index';
 
-import { merge } from '../utils/index';
 import { getLogger } from '../utils/log';
 const log = getLogger('provider');
 
 
-export type NetworkType = 'icon' | 'eth2' | 'bsc';
+export type NetworkType = 'icon' | 'eth2' | 'bsc' | string;
 
 export interface Network {
   name: string;
   type: NetworkType;
-}
-
-export interface ServiceDesc {
-  name: string;
-  networks: Array<Network>;
-  methods: Array<MethodDesc>;
-}
-
-export interface MethodDesc {
-  name: string;
-  networks: Array<string>;
-  inputs: Array<string>;
-  readonly: boolean;
 }
 
 export interface ServiceInfo {
@@ -236,41 +245,53 @@ export interface Provider extends EventEmitter<ProviderFilter> {
  * @memberof @iconfoundation/btpsdk
  */
 export class BTPProvider implements Provider {
-  #baseUrl: string;
-  #transactOpts: TransactOpts;
   #client: HttpProvider;
   #emitters: Map<'log' | 'block', EventEmitter<EventFilter>> = new Map();
 
   /**
-   * @param {string} baseUrl
-   * @param {BTPProviderOptions} options
+   * @param {string|HttpProvider} urlOrHttpProvider
    */
-  constructor(creator: HttpRequestCreator, options?: TransactOpts & DefaultOptions);
-  constructor(baseUrl: string, options?: TransactOpts & DefaultOptions);
-  constructor(baseUrlOrCreator: string | HttpRequestCreator, options?: TransactOpts & DefaultOptions) {
-    this.#baseUrl = typeof(baseUrlOrCreator) === 'string' ? baseUrlOrCreator : baseUrlOrCreator.baseUrl;
-    this.#transactOpts = options ?? {};
-    this.#client = new DefaultHttpProvider(baseUrlOrCreator, merge(options ?? {}, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    }) as DefaultOptions);
+  constructor(urlOrProvider: string | HttpProvider) {
+    if (typeof(urlOrProvider) === 'string') {
+      this.#client = new BTPHttpProvider(urlOrProvider, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      } as DefaultHttpOpts);
+    } else {
+      this.#client = urlOrProvider;
+    }
   }
 
   async #services(): Promise<Array<ServiceInfo>> {
     return formatServicesInfo(await this.#client.request('/api'));
   }
 
-  async #descriptions(): Promise<Array<ServiceDesc>> {
+  async #descriptions(): Promise<Array<ServiceDescription>> {
     return formatServiceDescs(await this.#client.request('/api-docs'), await this.#services());
   }
 
-  /**
-   * Returns all btp networks
-   *
-   * @return {Promise<Array<Network>>}
-   */
+  #getEmitter(type: EventType): EventEmitter<EventFilter> {
+    let emitter: EventEmitter<EventFilter>;
+    if (!this.#emitters.has(type)) {
+      switch (type) {
+        case 'log': {
+          emitter = new LogEmitter(this.#client.baseUrl.replace('http', 'ws'));
+          break
+        }
+        case 'block': {
+          emitter = new BlockFinalityEmitter(this);
+          break
+        }
+        default:
+          throw new Error("");
+      }
+      this.#emitters.set(type, emitter);
+    }
+    return this.#emitters.get(type)!;
+  }
+
   async networks(): Promise<Array<Network>> {
     return formatNetworks(await this.#client.request('/api'));
   }
@@ -296,9 +317,8 @@ export class BTPProvider implements Provider {
       throw new Error('both `from` and `signautre` must be null or have values');
     }
 
-    const signer = options.signer || this.#transactOpts?.signer;
-    if (signer != null && options.from == null && options.signature == null) {
-      const from = await signer.address(network.type);
+    if (options.signer != null && options.from == null && options.signature == null) {
+      const from = await options.signer.address(network.type);
       const response = await this.#client.request<string>(`/api/${service}/${method}`, {
         method: 'POST',
         body: JSON.stringify({
@@ -310,7 +330,7 @@ export class BTPProvider implements Provider {
 
       const rawtx = response;
       options.from = from;
-      options.signature = await signer.sign(network.type, rawtx);
+      options.signature = await options.signer.sign(network.type, rawtx);
     }
 
     const response = await this.#client.request<string>(`/api/${service}/${method}`, {
@@ -370,8 +390,9 @@ export class BTPProvider implements Provider {
         .catch((error) => {
           listener(error);
         });
+    } else {
+      this.#getEmitter(type).on(type, filter as EventFilter, listener);
     }
-    this.#getEmitter(type).on(type, filter as EventFilter, listener);
     return this;
   }
 
@@ -385,42 +406,17 @@ export class BTPProvider implements Provider {
         .catch((error) => {
           listener(error);
         });
+    } else {
+      this.#getEmitter(type).once(type, filter as EventFilter, listener);
     }
-    this.#getEmitter(type).once(type, filter as EventFilter, listener);
     return this;
   }
 
-  /**
-   * Unregister event listener
-   *
-   * @param {EventType} type
-   * @param {EventListener} [listener]
-   */
   off(type: EventType): this;
   off(type: EventType, listener: EventListener): this;
   off(type: EventType, listener?: EventListener): this {
     const emitter = this.#getEmitter(type);
     listener == null ? emitter.off(type) : emitter.off(type, listener);
     return this;
-  }
-
-  #getEmitter(type: EventType): EventEmitter<EventFilter> {
-    let emitter: EventEmitter<EventFilter>;
-    if (!this.#emitters.has(type)) {
-      switch (type) {
-        case 'log': {
-          emitter = new LogEmitter(this.#baseUrl.replace('http', 'ws'));
-          break
-        }
-        case 'block': {
-          emitter = new BlockFinalityEmitter(this);
-          break
-        }
-        default:
-          throw new Error("");
-      }
-      this.#emitters.set(type, emitter);
-    }
-    return this.#emitters.get(type)!;
   }
 }

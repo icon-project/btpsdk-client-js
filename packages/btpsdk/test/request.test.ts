@@ -1,5 +1,5 @@
 import {
-  DefaultHttpProvider
+  BTPHttpProvider
 } from '../src/provider/request';
 
 import {
@@ -23,7 +23,7 @@ describe('http provider tests', () => {
       },
       status: 200
     };
-    const provider = new DefaultHttpProvider(getTestHttpProvider(data));
+    const provider = new BTPHttpProvider(getTestHttpProvider(data));
 
     expect(provider.baseUrl).toBe(data.baseUrl);
     expect(await provider.request<{ name: string }>('/name', {
@@ -44,7 +44,7 @@ describe('http provider tests', () => {
         data: null
       }
     }
-    const provider = new DefaultHttpProvider(getTestHttpProvider(data));
+    const provider = new BTPHttpProvider(getTestHttpProvider(data));
 
     await expect(() => provider.request('/anywhere')).rejects.toThrow(
       new ServerRejectError({ code: data.status, message: data.json.message }));
@@ -65,7 +65,7 @@ describe('http provider tests', () => {
       }
     ];
 
-    const provider = new DefaultHttpProvider(BASE_URL);
+    const provider = new BTPHttpProvider(BASE_URL);
     backend.start(PORT)
       .handle('/api', 'GET', JSON.stringify(resData));
 
@@ -80,7 +80,7 @@ describe('http provider tests', () => {
 
   // TODO extract backend specific data
   itIf(IS_E2E, 'e2e', async () => {
-    const provider = new DefaultHttpProvider('http://20.20.0.32:10080');
+    const provider = new BTPHttpProvider('http://20.20.0.32:10080');
     expect(await provider.request<Array<{
       name: string,
       networks: { [ name: string ]: string },

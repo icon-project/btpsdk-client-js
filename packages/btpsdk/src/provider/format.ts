@@ -2,8 +2,11 @@ import type {
   Network,
   NetworkType,
   ServiceInfo,
-  ServiceDesc,
 } from './provider';
+
+import type {
+  ServiceDescription,
+} from '../service/description';
 
 import {
   BTPError,
@@ -62,7 +65,7 @@ export function formatNetworks (value: any): Array<Network> {
 }
 
 // format response of `/api-docs`
-export function formatServiceDescs (value: any, infos: Array<ServiceInfo>): Array<ServiceDesc> {
+export function formatServiceDescs (value: any, infos: Array<ServiceInfo>): Array<ServiceDescription> {
   checkType(typeof(value) === 'object');
   checkType(typeof(value.paths) === 'object');
 
@@ -94,7 +97,7 @@ export function formatServiceDescs (value: any, infos: Array<ServiceInfo>): Arra
           throw new Error('unknown service method property');
         }
       })
-    } as ServiceDesc;
+    } as ServiceDescription;
   });
 }
 

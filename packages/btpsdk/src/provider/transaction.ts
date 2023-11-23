@@ -1,21 +1,173 @@
 /**
- * @typedef IconTransactOpts
- * @type {object}
- * @property {?number} stepLimit
- * @property {?timestamp} timestamp
+ * base transact options
+ *
+ * @interface BaseTransactOpts
+ * @memberof @iconfoundation/btpsdk
  */
 /**
- * @typedef EvmTransactOpts
- * @type {object}
- * @property {?number} gasPrice
- * @property {?number} gasLimit
- * @property {?number} gasFeeCap
- * @property {?number} gasTipCap
- * @property {?number} nonce
+ * a signer object for signing transaction
+ *
+ * @name BaseTransactOpts#signer
+ * @type {Signer=}
+ */
+/**
+ * a signature for a transaction
+ *
+ * @name BaseTransactOpts#signature
+ * @type {string=}
+ */
+/**
+ * a `from` address
+ *
+ * @name BaseTransactOpts#from
+ * @type {string=}
+ */
+/**
+ * amount of concurrency on the network
+ *
+ * @name BaseTransactOpts#value
+ * @type {number=}
+ */
+/**
+ * if true, estimates appropriate amount of resources consumed for transaction,
+ * or use default resource limit
+ *
+ * @name BaseTransactOpts#estimate
+ * @type {boolean=}
+ */
+/**
+ * transact options for icon networks
+ *
+ * @interface IconTransactOpts
+ * @extends BaseTransactOpts
+ * @memberof @iconfoundation/btpsdk
+ */
+/**
+ * step limit
+ *
+ * @name IconTransactOpts#stepLimit
+ * @type {number=}
+ */
+/**
+ * timestamp
+ *
+ * @name IconTransactOpts#timestamp
+ * @type {number=}
+ */
+/**
+ * transact options for evm networks
+ *
+ * @interface EvmTransactOpts
+ * @extends BaseTransactOpts
+ * @memberof @iconfoundation/btpsdk
+ */
+/**
+ * gas price
+ *
+ * @name EvmTransactOpts#gasPrice
+ * @type {number=}
+ */
+/**
+ * gas limit
+ *
+ * @name EvmTransactOpts#gasLimit
+ * @type {number=}
+ */
+/**
+ * gasFeeCap
+ *
+ * @name EvmTransactOpts#gasFeeCap
+ * @type {number=}
+ */
+/**
+ * gasTipCap
+ *
+ * @name EvmTransactOpts#gasTipCap
+ * @type {number=}
+ */
+/**
+ * nonce
+ *
+ * @name EvmTransactOpts#nonce
+ * @type {number=}
  */
 /**
  * @typedef {(IconTransactOpts|EvmTransactOpts)} TransactOpts
  */
+/**
+ * base receipt interface
+ *
+ * @interface BaseReceipt
+ * @memberof @iconfoundation/btpsdk
+ */
+/**
+ * block object
+ *
+ * @name BaseReceipt#block
+ * @type {Object}
+ * @property {string} id - block id
+ * @property {number} height - block height
+ */
+/**
+ * cumulative used resource for transactions
+ *
+ * @name BaseReceipt#cumulativeUsed
+ * @type {string}
+ */
+/**
+ * used resource for the transaction
+ *
+ * @name BaseReceipt#used
+ * @type {string}
+ */
+/**
+ * resource price
+ *
+ * @name BaseReceipt#price
+ * @type {string}
+ */
+/**
+ * a receipt for icon networks
+ *
+ * @interface IconReceipt
+ * @extends BaseReceipt
+ */
+/**
+ * event logs
+ *
+ * @name IconReceipt#logs
+ * @type {Array<Object>}
+ * @property {string} scoreAddress
+ * @property {Array<string>} indexed
+ * @property {Array<string>} data
+ */
+/**
+ * a receipt for evm networks
+ *
+ * @interface EthReceipt
+ * @extends BaseReceipt
+ */
+/**
+ * event logs
+ *
+ * @name EthReceipt#logs
+ * @type {Array<Object>}
+ * @property {string} address
+ * @property {Array<string>} topics
+ * @property {string} data
+ * @property {string} blockHash
+ * @property {string} blockNumber
+ * @property {string} transactionHash
+ * @property {string} transactionIndex
+ * @property {string} logIndex
+ * @property {boolean} removed
+ */
+/**
+ * @typedef {IconReceipt|EthReceipt} Receipt
+ * @memberof @iconfoundation/btpsdk
+ */
+
+
 import {
   BTPError,
   ERR_TIMEOUT,
@@ -98,6 +250,8 @@ export type CallOpts = {
 
 /**
  * PendingTransaction class
+ *
+ * @memberof @iconfoundation/btpsdk
  */
 export class PendingTransaction {
   #provider: Provider;

@@ -2,6 +2,7 @@
  * Interface for http client
  *
  * @interface HttpProvider
+ * @memberof @iconfoundation/btpsdk
  */
 /**
  * endpoint of http(s) server
@@ -29,7 +30,7 @@ import {
   ServerRejectError,
 } from '../error/index';
 
-export type DefaultOptions = Pick<RequestInit, 'cache' | 'credentials' | 'headers' | 'integrity' |
+export type DefaultHttpOpts = Pick<RequestInit, 'cache' | 'credentials' | 'headers' | 'integrity' |
   'keepalive' | 'method' | 'mode' | 'redirect' | 'referrer' | 'referrerPolicy' | 'signal'>;
 
 export type HttpRequestCreator = {
@@ -49,18 +50,19 @@ const log = getLogger('request');
  * Http Provider Implementation
  *
  * @implements {HttpProvider}
+ * @memberof @iconfoundation/btpsdk
  */
-export class DefaultHttpProvider implements HttpProvider {
+export class BTPHttpProvider implements HttpProvider {
   #baseUrl: string | HttpRequestCreator;
-  #options: DefaultOptions;
+  #options: DefaultHttpOpts;
 
   /**
-   * Create DefaultHttpProvider object
+   * Create BTPHttpProvider object
    *
    * @param {string} baseUrl
    * @param {?Pick<RequestInit, 'cache' | 'credentials' | 'headers' | 'integrity' | 'keepalive' | 'method' | 'mode' | 'redirect' | 'referrer' | 'referrerPolicy' | 'signal'>} options - default options for `request`
    */
-  constructor(baseUrl: string | HttpRequestCreator, options?: DefaultOptions) {
+  constructor(baseUrl: string | HttpRequestCreator, options?: DefaultHttpOpts) {
     this.#baseUrl = typeof(baseUrl) === 'string' && baseUrl.endsWith('/')
       ? baseUrl.slice(0, baseUrl.length) : baseUrl;
     this.#options = options ?? {};

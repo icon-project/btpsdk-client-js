@@ -3,6 +3,7 @@ export * from './signer';
 export * from './transaction';
 export * from './eventlog';
 export * from './blockevent';
+export * from './request';
 
 export type WebSocketCreator = () => WebSocketLike;
 

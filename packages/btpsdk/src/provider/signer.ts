@@ -61,7 +61,7 @@ export class Signers implements Signer {
    *
    * @param {Array<Signer>} signers
    */
-  constructor(signers: Array<Signer>) {
+  constructor(...signers: Array<Signer>) {
     this.#signers = signers;
   }
 
