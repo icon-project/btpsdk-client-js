@@ -43,7 +43,7 @@
   },
   "browser": {
     "assert": false,
-    "./lib.esm/provider/event/ws.js": "./lib.esm/provider/event/ws-browser.js"
+    "./lib.esm/provider/ws.js": "./lib.esm/provider/ws-browser.js"
   },
   "exports": {
     ".": {
