@@ -142,6 +142,7 @@
  * @memberof @iconfoundation/btpsdk
  */
 
+import { base64ToHex } from '../utils/index.js';
 import type { ServiceDescription } from '../service/index.js';
 import type {
   Receipt,
@@ -166,6 +167,7 @@ import {
   formatNetworks,
   formatReceipt,
   formatTransactOpts,
+  formatRetransact,
 } from './format.js';
 import { qs } from '../utils/index.js';
 import { Service } from '../service/index';
@@ -178,6 +180,7 @@ import {
 
 import {
   BTPError,
+  ServerRejectError,
   ERR_UNKNOWN_NETWORK_NAME,
   ERR_UNKNOWN_SERVICE,
 } from '../error/index';
@@ -247,6 +250,8 @@ export interface Provider extends EventEmitter<ProviderFilter> {
 export class BTPProvider implements Provider {
   #client: HttpProvider;
   #emitters: Map<'log' | 'block', EventEmitter<EventFilter>> = new Map();
+  #finalizer: EventEmitter<EventFilter> | null = null;
+
 
   /**
    * @param {string|HttpProvider} urlOrHttpProvider
@@ -274,19 +279,20 @@ export class BTPProvider implements Provider {
 
   #getEmitter(type: EventType): EventEmitter<EventFilter> {
     let emitter: EventEmitter<EventFilter>;
-    if (!this.#emitters.has(type)) {
-      switch (type) {
-        case 'log': {
-          emitter = new LogEmitter(this.#client.baseUrl.replace('http', 'ws'));
-          break
-        }
-        case 'block': {
-          emitter = new BlockFinalityEmitter(this);
-          break
-        }
-        default:
-          throw new Error("");
+    switch (type) {
+      case 'log': {
+        return new LogEmitter(this.#client.baseUrl.replace('http', 'ws'));
       }
+      case 'block': {
+        if (this.#finalizer == null) {
+          this.#finalizer = new BlockFinalityEmitter(this);
+        }
+        return this.#finalizer;
+      }
+      default:
+        throw new Error("TODO");
+    }
+    if (!this.#emitters.has(type)) {
       this.#emitters.set(type, emitter);
     }
     return this.#emitters.get(type)!;
@@ -319,18 +325,23 @@ export class BTPProvider implements Provider {
 
     if (options.signer != null && options.from == null && options.signature == null) {
       const from = await options.signer.address(network.type);
-      const response = await this.#client.request<string>(`/api/${service}/${method}`, {
-        method: 'POST',
-        body: JSON.stringify({
-          network: network.name,
-          params,
-          options: Object.assign({ ...options }, { from }),
-        })
-      });
-
-      const rawtx = response;
-      options.from = from;
-      options.signature = await options.signer.sign(network.type, rawtx);
+      try {
+        await this.#client.request<string>(`/api/${service}/${method}`, {
+          method: 'POST',
+          body: JSON.stringify({
+            network: network.name,
+            params,
+            options: Object.assign({ ...options }, { from }),
+          })
+        });
+      } catch (error) {
+        if (!(error instanceof ServerRejectError) || error.scode != 1005) {
+          throw error;
+        }
+        options = formatRetransact(network.type, options, error);
+        const message = error.data.data;
+        options.signature = await options.signer!.sign(network.type, base64ToHex(message));
+      }
     }
 
     const response = await this.#client.request<string>(`/api/${service}/${method}`, {

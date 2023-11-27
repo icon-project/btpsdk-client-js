@@ -25,12 +25,14 @@ export class BTPError extends Error {
 }
 
 export class ServerRejectError extends BTPError {
-  readonly statusCode: number;
-  readonly responseMessage: string;
+  readonly scode: number;
+  readonly smessage: string;
+  readonly data: any
 
-  constructor(response: { code: number, message: string }) {
+  constructor(response: { code: number, message: string, data: any }) {
     super(ERR_SERVER_REJECT, response)
-    this.statusCode = response.code;
-    this.responseMessage = response.message;
+    this.scode = response.code;
+    this.smessage = response.message;
+    this.data = response.data;
   }
 }

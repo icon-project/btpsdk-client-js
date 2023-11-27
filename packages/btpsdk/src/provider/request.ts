@@ -79,7 +79,8 @@ export class BTPHttpProvider implements HttpProvider {
     const opt = (options != null ? merge(this.#options, options) : this.#options) as RequestInit;
     const response = typeof(this.#baseUrl) === 'string' ? await fetch(this.#baseUrl.concat(path), opt) : await this.#baseUrl(path, opt);
     if (!response.ok) {
-      throw new ServerRejectError({ code: response.status, message: await response.json() })
+      const res = await response.json();
+      throw new ServerRejectError({ code: res.code, message: res.message, data: res.data });
     }
     return (await response.json()) as T;
   }

@@ -9,9 +9,11 @@ import type {
 } from '../service/description';
 
 import {
+  assert,
   BTPError,
   ERR_INVALID_FORMAT,
   ERR_UNKNOWN_NETWORK_TYPE,
+  ServerRejectError,
 } from '../error/index';
 
 import type { EventLog } from './eventlog';
@@ -46,9 +48,9 @@ export function formatServicesInfo (value: any): Array<ServiceInfo> {
 
 // format response of `/api`
 export function formatNetworks (value: any): Array<Network> {
-  checkType(typeof(value) === 'object');
-  checkType(typeof(value.name) === 'string');
-  checkType(typeof(value.networks) === 'object');
+  //checkType(Array.isArray(value));
+  // checkType(typeof(value.name) === 'string');
+  // checkType(typeof(value.networks) === 'object');
 
   return Object.entries(value.map(({ networks }: {
     networks: Array<{
@@ -344,5 +346,21 @@ export const formatTransactOpts = (type: NetworkType, options: TransactOpts) => 
     }
     default:
       throw new BTPError(ERR_UNKNOWN_NETWORK_TYPE, { type });
+  }
+}
+
+export const formatRetransact = (type: NetworkType, options: TransactOpts, error: ServerRejectError) => {
+  switch (type) {
+    case 'icon': {
+      const { from, timestamp, stepLimit } = error.data.options;
+      if (options.from != null) {
+        assert(options.from === from);
+      }
+      return { ...options, from, stepLimit, timestamp,  };
+    }
+    default: {
+      console.error(error, options);
+      throw new BTPError(ERR_UNKNOWN_NETWORK_TYPE, { type });
+    }
   }
 }

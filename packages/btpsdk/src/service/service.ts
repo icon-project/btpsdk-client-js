@@ -175,7 +175,7 @@ export class Service extends AbstractService<SvcTransactFunc, SvcCallFunc>  {
    */
   at(network: string): Contract {
     const target = findNetworkOrThrowError(this.networks, network);
-    return new Contract(this.provider, target, this.desc)
+    return new Contract(this.provider, this.desc, target)
   }
 
   on(network: string, name: string, listener: EventListener): this;
@@ -276,10 +276,10 @@ export class Contract extends AbstractService<ConTransactFunc, ConCallFunc> {
   /**
    * @constructor
    * @param {Provider} provider
-   * @param {Network} network
    * @param {ServiceDescription} desc
+   * @param {Network} network
    */
-  constructor(provider: Provider, network: Network, desc: ServiceDescription) {
+  constructor(provider: Provider, desc: ServiceDescription, network: Network) {
     super(provider, desc);
     this.network = network;
   }

@@ -43,3 +43,7 @@ export const merge = (...objects: Array<any>) => {
     return prev;
   }, {});
 }
+
+export const base64ToHex = (base64: string) => {
+  return '0x' + atob(base64).split('').map((m) => ('0' + m.charCodeAt(0).toString(16)).slice(-2)).join('');
+}

@@ -10,6 +10,7 @@
  * @property {Object} payload
  * @property {string} playload.name
  * @property {Map<string, any>} playload.params
+ * @memberof @iconfoundation/btpsdk
  */
 
 import { WebSocket as WebSock } from "./ws";
