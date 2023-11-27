@@ -55,27 +55,29 @@
 ```
 
 the following codes perform the same behavior as in the codes above.
+If `contract` object is used instead of `service` object, the argument for `network type` used by service methods is no longer passed.
 
 ```javascript
+(async () => {
   const service = await provider.service('token');
 
+  // listen to `Transfer` events occuring on the bsc network
   {
-    const token = service.at('bsc:chapel');
-    token.once('Transfer', (event) => {
+    // with token service
+    service.on('bsc:chapel', 'Transfer', (event) => {
+      ...
+    });
+
+    // with token contract of bsc network
+    const contract = service.at('bsc:chapel');
+    contract.on('Transfer', (event) => {
       ...
     });
   }
 
-  // retrieve `token` contract on `icon:berlin` network from `token` service
-  const token = token.at('icon:berlin');
-  const decimals = await token.decimals();
-  // decimals === 16
-
-  const tx = await token.transfer({
-    _to: 'btp://0x2.bsc/0x11...',
-    _amount: 1000
-  });
-  const receipt = await tx.wait();
+  const contract = service.at('icon:berlin');
+  await service.decimals('icon:berlin') === await contract.decimals();
+})();
 ```
 
 ### Retrieve receipt for a transaction
