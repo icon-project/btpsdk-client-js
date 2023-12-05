@@ -52,7 +52,10 @@
  * @type {boolean}
  */
 import {
-  assert
+  assert,
+  invalidArgument,
+  BtpError,
+  ErrorCode,
 } from "../error/index";
 
 export interface ServiceDescription {
@@ -72,12 +75,6 @@ export interface MethodDescription {
 import type {
   Network,
 } from "../provider/index";
-
-import {
-  BTPError,
-  ERR_UNKNOWN_SERVICE,
-  ERR_INVALID_FORMAT,
-} from "../error/index";
 
 const resolver = {
   networks: {
@@ -133,7 +130,7 @@ export class OpenAPIDocument {
     const apis = Object.entries(this.#doc['paths']);
     const targetApis = apis.filter(([_name]) => regexp.test(_name));
     if (targetApis.length <= 0) {
-      throw new BTPError(ERR_UNKNOWN_SERVICE, { service: name });
+      throw invalidArgument(`unknown service(${name})`);;
     }
     const svcapi: any = Object.fromEntries(targetApis);
     const networks: Set<string> = new Set();
@@ -154,7 +151,7 @@ export class OpenAPIDocument {
           readonly: true,
         }
       } else {
-        throw new BTPError(ERR_INVALID_FORMAT, { name: 'service description' })
+        throw new BtpError(ErrorCode.MalformedData, 'invalid service description')
       }
       props.networks.forEach((n: string) => networks.add(n));
       return {

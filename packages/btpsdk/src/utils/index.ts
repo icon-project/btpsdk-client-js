@@ -1,3 +1,4 @@
+export * from './log';
 
 export function qs (kvs: { [key: string]: any }, ns: string = '') {
   let r: string = '';

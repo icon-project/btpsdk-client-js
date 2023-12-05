@@ -41,11 +41,14 @@
  */
 
 export interface Signer {
-  init(): Promise<void>;
   supports(): Array<string>;
   address(type: string): Promise<string>;
   sign(type: string, message: string): Promise<string>;
 }
+
+import {
+  invalidArgument,
+} from '../error/index';
 
 /**
  * Signer utility class that has multiple signer objects
@@ -65,25 +68,19 @@ export class Signers implements Signer {
     this.#signers = signers;
   }
 
-  async init(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      Promise.all(this.#signers.map(s => s.init)).then(() => resolve());
-    });
-  }
-
   supports(): Array<string> {
     return this.#signers.map(s => s.supports()).flat();
   }
 
   async address(type: string): Promise<string> {
     return (this.#signers.find(s => s.supports().includes(type)) ?? (() => {
-      throw new Error('Unsupported Network Type');
+      throw invalidArgument(`unsupported network type(${type})`);
     })()).address(type);
   }
 
   async sign(type: string, message: string): Promise<string> {
     return (this.#signers.find(s => s.supports().includes(type)) ?? (() => {
-      throw new Error('Unsupported Network Type');
+      throw invalidArgument(`unsupported network type(${type})`);
     })()).sign(type, message);
   }
 }

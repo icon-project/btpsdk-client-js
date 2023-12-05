@@ -30,10 +30,10 @@ import {
 
 
 import {
-  BTPError,
-  ERR_NOT_IMPLEMENTED,
-  ERR_ILLEGAL_STATE,
-  ERR_CLOSED_WS,
+  BtpError,
+  ErrorCode,
+  assert,
+  invalidArgument,
 } from '../error/index';
 
 const log = getLogger('eventlog');
@@ -115,8 +115,8 @@ export class LogEmitter implements EventEmitter<LogFilter> {
 
     ws.onclose = (ev: { code: number, reason: string }) => {
       if (ev.code !== 1000 && this.#listener != null) {
-        log.warn(`ws connection closed - code(${ev.code}) reason(${ev.reason})`);
-        this.#listener(new BTPError(ERR_CLOSED_WS, ev));
+        log.info(`ws connection closed - code(${ev.code}) reason(${ev.reason})`);
+        this.#listener(new BtpError(ErrorCode.ClosedConnection, `ws code(${ev.code}) reason(${ev.reason})`), ev);
       }
       if (this.#ws != null && this.#ws === ws) {
         this.#ws = undefined;
@@ -125,8 +125,8 @@ export class LogEmitter implements EventEmitter<LogFilter> {
     };
 
     ws.onerror = (ev: any) => {
-      console.error(ev);
-      throw new BTPError(ERR_NOT_IMPLEMENTED);
+      log.error(ev);
+      throw new BtpError(ErrorCode.TODO, 'not implemented');
     };
 
     return this;
@@ -137,13 +137,11 @@ export class LogEmitter implements EventEmitter<LogFilter> {
   off(name: string, listener?: EventListener): void {
     if (listener != null) {
       if (this.#listener !== listener) {
-        throw new BTPError(ERR_ILLEGAL_STATE);
+        throw invalidArgument('unknown listener object')
       }
     }
-    if (this.#ws == null) {
-      throw new BTPError(ERR_ILLEGAL_STATE);
-    }
-    this.#ws.close(1000);
+    assert(this.#ws != null);
+    this.#ws!.close(1000);
   }
 
 }

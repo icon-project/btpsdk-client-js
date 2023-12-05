@@ -1,41 +1,66 @@
-//import winston from 'winston';
-
-import type {
-  //Logger,
-  LoggerOptions
-} from 'winston';
-
 import {
-  //merge
-} from './index';
+  assert
+} from '../error/index';
 
-//const { combine, timestamp, printf } = winston.format;
+export enum LogLevel {
+  DEBUG = 'DEBUG',
+  INFO = 'INFO',
+  WARN = 'WARN',
+  ERROR = 'ERROR',
+  OFF = 'OFF',
+  ALL = 'ALL'
+};
 
-// const format = (label: string) => {
-//   return combine(
-//     winston.format.label({ label }),
-//     timestamp({ format: 'HH:mm:ss' }),
-//     printf(({ timestamp, level, label, message }) => `${level.toUpperCase()[0]}|${timestamp}|${label}| ${message}`)
-//   );
-// }
+const LogLevels: { [ name: string ]: number } = {
+  DEBUG: 1,
+  INFO: 2,
+  WARN: 3,
+  ERROR: 4,
+  OFF: 5
+};
 
-// const LOG_LEVEL = process.env.BTP_LOG_LEVEL || 'error';
+let _level: number = LogLevels[process.env.BTP_LOG_LEVEL ?? LogLevel.DEBUG]
 
-// const OPTIONS = {
-//   level: LOG_LEVEL,
-//   transports: [ new winston.transports.Console() ],
-//   format: format('unknown'),
-// }
+export class Logger {
+  #mod: string;
 
-interface Logger {
-  log: (...args: Array<any>) => void;
-  debug: (...args: Array<any>) => void
-  info: (...args: Array<any>) => void
-  warn: (...args: Array<any>) => void
+  constructor(mod: string) {
+    this.#mod = mod;
+  }
+
+  #log (lv: LogLevel, args: Array<any>): void {
+    if (LogLevels[lv] < _level) {
+      return;
+    }
+    console.log.apply(console, [`${lv.at(0)}|${new Date().toISOString()}|${this.#mod}|`].concat(args));
+  }
+
+  debug (...args: Array<any>): void {
+    this.#log(LogLevel.DEBUG, args);
+  }
+
+  info (...args: Array<any>): void {
+    this.#log(LogLevel.INFO, args);
+  }
+
+  warn (...args: Array<any>): void {
+    this.#log(LogLevel.WARN, args);
+  }
+
+  error (...args: Array<any>): void {
+    this.#log(LogLevel.ERROR, args);
+  }
+
+  static setLevel (lv: LogLevel): void {
+    assert(LogLevels[lv] != null, `invalid log level(${lv})`);
+    _level = LogLevels[lv];
+  }
+
+  static of (mod: string): Logger {
+    return new Logger(mod);
+  }
 }
 
-export function getLogger(mod: string, options?: LoggerOptions): Logger {
-  return console;
-  // const base = { ...OPTIONS, format: format(mod) };
-  // return winston.createLogger(options != null ? merge(base, { ...options }) : base);
+export function getLogger(mod: string): Logger {
+  return Logger.of(mod);
 }

@@ -169,8 +169,8 @@
 
 
 import {
-  BTPError,
-  ERR_TIMEOUT,
+  BtpError,
+  ErrorCode,
 } from "../error/index";
 
 import type {
@@ -192,6 +192,11 @@ export interface BaseReceipt {
   cumulativeUsed: string;
   used: string;
   price: string;
+  failure: {
+    code: number;
+    message: string;
+    data: any;
+  } | null;
 }
 
 export interface IconReceipt extends BaseReceipt {
@@ -302,7 +307,7 @@ export class PendingTransaction {
    * @async
    */
   async wait(status: 'created' | 'finalized' = 'created', timeout: number = 0): Promise<Receipt> {
-    let onFinalized: null | ((error: BTPError) => void);
+    let onFinalized: null | ((error: BtpError) => void);
 
     const receipt = await this.#provider.getTransactionResult(this.#network, this.#id);
     if (status === 'created') {
@@ -316,11 +321,11 @@ export class PendingTransaction {
               this.#provider.off('block', onFinalized);
               onFinalized = null;
             }
-            return reject(new BTPError(ERR_TIMEOUT));
+            return reject(new BtpError(ErrorCode.Timeout));
           }, timeout);
         }
 
-        onFinalized = (error: BTPError) => {
+        onFinalized = (error: BtpError) => {
           if (error != null) {
             return reject(error);
           } else {

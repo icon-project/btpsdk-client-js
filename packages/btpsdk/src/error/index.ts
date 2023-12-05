@@ -1,38 +1,51 @@
-import {
-  ErrorDescription,
-  ERR_SERVER_REJECT,
-} from './codes';
+export enum ErrorCode {
+  UnknownError = 'UnknownError',
+  Assert = 'Assert',
+  MalformedData = 'MalformedData',
+  InconsistentBlock = 'InconsistentBlock',
+  ServerError = 'ServerError',
+  InvalidArgument = 'InvalidArgument',
+  IllegalState = 'IllegalState',
+  ClosedConnection = 'Closedconnection',
+  UnsupportedOperation = 'UnsupportedOperation',
+  Timeout = 'Timeout',
+  Abort = 'Abort',
+  TODO = 'TODO'
+}
 
-export * from './codes';
+export class BtpError extends Error {
+  code: ErrorCode;
 
-export function assert(condition: any, msg?: string): asserts condition {
-  if (!condition) {
-    throw new Error('AssertionError');
+  constructor(code: ErrorCode, message: string = code, cause?: Error) {
+    super(`${code}: ${message}`, { cause });
+    this.code = code;
+    this.name = this.constructor.name;
   }
 }
 
-export class BTPError extends Error {
-  readonly code: number;
-
-  constructor(description: ErrorDescription, args: { [ name: string ]: any } = {}) {
-    super(typeof(description.message) === 'string' ? description.message : description.message(args) );
-    this.code = description.code;
+export class ServerRejectError extends BtpError {
+  readonly payload: {
+    code: number;
+    message: string;
+    data: any;
   }
-
-  static is (other: any, description: ErrorDescription): other is BTPError {
-    return other instanceof BTPError && other.code === description.code;
-  }
-}
-
-export class ServerRejectError extends BTPError {
-  readonly scode: number;
-  readonly smessage: string;
-  readonly data: any
 
   constructor(response: { code: number, message: string, data: any }) {
-    super(ERR_SERVER_REJECT, response)
-    this.scode = response.code;
-    this.smessage = response.message;
-    this.data = response.data;
+    super(ErrorCode.ServerError, response.message);
+    this.payload = {
+      code: response.code,
+      message: response.message,
+      data: response.data
+    };
   }
+}
+
+export function assert(condition: boolean, message: string = '', code: ErrorCode = ErrorCode.Assert): void {
+  if (!condition) {
+    throw new BtpError(code, `${code}: ${message}`);
+  }
+}
+
+export function invalidArgument(message: string): void {
+  throw new BtpError(ErrorCode.InvalidArgument, message);
 }

@@ -10,10 +10,10 @@ import type {
 
 import {
   assert,
-  BTPError,
-  ERR_INVALID_FORMAT,
-  ERR_UNKNOWN_NETWORK_TYPE,
   ServerRejectError,
+  invalidArgument,
+  BtpError,
+  ErrorCode,
 } from '../error/index';
 
 import type { EventLog } from './eventlog';
@@ -22,7 +22,7 @@ import { getLogger } from '../utils/log';
 const log = getLogger('format');
 
 function checkType (condition: boolean): asserts condition {
-  if (!condition) throw new BTPError(ERR_INVALID_FORMAT);
+  if (!condition) throw new BtpError(ErrorCode.MalformedData);
 }
 
 // format response of `/api`
@@ -48,6 +48,7 @@ export function formatServicesInfo (value: any): Array<ServiceInfo> {
 
 // format response of `/api`
 export function formatNetworks (value: any): Array<Network> {
+  log.debug('formatNetworks:', JSON.stringify(value, null, 2));
   //checkType(Array.isArray(value));
   // checkType(typeof(value.name) === 'string');
   // checkType(typeof(value.networks) === 'object');
@@ -96,7 +97,7 @@ export function formatServiceDescs (value: any, infos: Array<ServiceInfo>): Arra
             networks: _formatReadableSupportedNewtorks(desc.get),
           }
         } else {
-          throw new Error('unknown service method property');
+          throw invalidArgument(`a service description hasn\'t known properties, ${name}: ${JSON.stringify(desc, null, 2)}`);
         }
       })
     } as ServiceDescription;
@@ -109,9 +110,9 @@ function _formatWritableMethodInputs (value: any) {
     inputs = value.requestBody.content['application/json'].schema.properties.params.properties;
   } catch (error) {
     if (error instanceof TypeError) {
-      throw new BTPError(ERR_INVALID_FORMAT, { name: 'api desc' });
+      throw invalidArgument(`fail to access property(value.requestBody.content['application/json'].schema.properties.params.properties\n source(${JSON.stringify(value, null, 2)}`);
     }
-    throw error;
+    throw new BtpError(ErrorCode.UnknownError, 'fail to access property of writable method description', error);
   }
   return inputs != null ? Object.keys(inputs) : [];
 }
@@ -122,9 +123,9 @@ function _formatWritableMethodSupportedNetworks (value: any) {
   } catch (error) {
     log.debug('fail to parsing supporting networks of writable method:', error);
     if (error instanceof TypeError) {
-      throw new BTPError(ERR_INVALID_FORMAT, { name: 'api desc' });
+      throw invalidArgument(`fail to access property(value.requestBody.content['application/json'].schema.properties.network.enum\n source(${JSON.stringify(value, null, 2)}`);
     }
-    throw error;
+    throw new BtpError(ErrorCode.UnknownError, 'fail to access property of writable method description', error);
   }
 }
 
@@ -138,9 +139,9 @@ function _formatReadableMethodInputs (value: any) {
     ) ?? [];
   } catch (error) {
     if (error instanceof TypeError) {
-      throw new BTPError(ERR_INVALID_FORMAT, { name: 'api desc' });
+      throw invalidArgument(`fail to access property(value.parameters[*].schema.properties.params.properties\n source(${JSON.stringify(value, null, 2)}`);
     }
-    throw error;
+    throw new BtpError(ErrorCode.UnknownError, 'fail to access property of readable method description', error);
   }
 }
 
@@ -150,9 +151,9 @@ function _formatReadableSupportedNewtorks (value: any) {
     return value.parameters.find((parameter: any) => parameter.name === 'network').schema.enum;
   } catch (error) {
     if (error instanceof TypeError) {
-      throw new BTPError(ERR_INVALID_FORMAT, { name: 'api desc' });
+      throw invalidArgument(`fail to access property(value.parameters[*].schema.enum\n source(${JSON.stringify(value, null, 2)}`);
     }
-    throw error;
+    throw new BtpError(ErrorCode.UnknownError, 'fail to access property of readable method description', error);
   }
 }
 
@@ -225,7 +226,7 @@ export const formatEventLog = (type: NetworkType, eventLog: BTPEventLog): EventL
       }
     }
     default: {
-      throw new BTPError(ERR_UNKNOWN_NETWORK_TYPE, { type });
+      throw invalidArgument(`unknown network type(${type})`);
     }
   }
 }
@@ -253,7 +254,11 @@ type IconReceipt = {
   },
   BlockHash: string;
   BlockHeight: number;
-  Failure: null;
+  Failure: {
+    code: number;
+    message: string;
+    data: any;
+  } | null;
 };
 
 type EvmReceipt = {
@@ -282,7 +287,11 @@ type EvmReceipt = {
     blockNumber: string;
     transactionIndex: string;
   },
-  Failure: null;
+  Failure: {
+    code: number;
+    message: string;
+    data: any;
+  } | null;
 }
 
 export const formatReceipt = (type: NetworkType, value: any): Receipt => {
@@ -300,6 +309,7 @@ export const formatReceipt = (type: NetworkType, value: any): Receipt => {
         used: receipt.Raw.stepUsed,
         price: receipt.Raw.stepPrice,
         logs: receipt.Raw.eventLogs,
+        failure: receipt.Failure
       }
     }
     case 'eth2':
@@ -317,10 +327,11 @@ export const formatReceipt = (type: NetworkType, value: any): Receipt => {
         used: receipt.Raw.gasUsed,
         price: receipt.Raw.effectiveGasPrice,
         logs: receipt.Raw.logs,
+        failure: receipt.Failure
       }
     }
     default: {
-      throw new BTPError(ERR_UNKNOWN_NETWORK_TYPE, { type });
+      throw invalidArgument(`unknown network type(${type})`);
     }
   }
 }
@@ -345,22 +356,31 @@ export const formatTransactOpts = (type: NetworkType, options: TransactOpts) => 
       return Object.fromEntries(Object.entries(options).filter(([name]) => props.includes(name))) as EvmTransactOpts;
     }
     default:
-      throw new BTPError(ERR_UNKNOWN_NETWORK_TYPE, { type });
+      throw invalidArgument(`unknown network type(${type})`);
   }
 }
 
 export const formatRetransact = (type: NetworkType, options: TransactOpts, error: ServerRejectError) => {
+  const _assert = (expected: string | undefined, actual: string) => {
+    assert(expected == null || expected === actual, `invalid from address, expected(${expected}) actual(${actual})`);
+  }
+
+  const opt = error.payload.data.options;
   switch (type) {
     case 'icon': {
-      const { from, timestamp, stepLimit } = error.data.options;
-      if (options.from != null) {
-        assert(options.from === from);
-      }
+      const { from, timestamp, stepLimit } = opt;
+      _assert(options.from, from);
       return { ...options, from, stepLimit, timestamp,  };
     }
+    case 'eth':
+    case 'eth2':
+    case 'bsc': {
+      const { from, gasFeeCap, gasLimit, gasTipCap, nonce } = opt;
+      _assert(options.from, from);
+      return { ...options, from, gasFeeCap, gasLimit, gasTipCap, nonce };
+    }
     default: {
-      console.error(error, options);
-      throw new BTPError(ERR_UNKNOWN_NETWORK_TYPE, { type });
+      throw invalidArgument(`unknown network type(${type})`);
     }
   }
 }

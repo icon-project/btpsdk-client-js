@@ -75,7 +75,7 @@ export class BTPHttpProvider implements HttpProvider {
   }
 
   async request<T = { [key: string]: any }>(path: string, options?: RequestInit): Promise<T> {
-    log.log(`request - path(${path}) options(${options ?? {}})`);
+    log.debug(`request - path(${path}) options(${options ?? {}})`);
     const opt = (options != null ? merge(this.#options, options) : this.#options) as RequestInit;
     const response = typeof(this.#baseUrl) === 'string' ? await fetch(this.#baseUrl.concat(path), opt) : await this.#baseUrl(path, opt);
     if (!response.ok) {

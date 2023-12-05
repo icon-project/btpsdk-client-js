@@ -41,8 +41,7 @@ import type {
 } from "./description";
 
 import {
-  BTPError,
-  ERR_UNKNOWN_SERVICE,
+  invalidArgument,
 } from '../error/index';
 
 import type {
@@ -56,7 +55,7 @@ const passProperties = [ 'then' ];
 
 function findNetworkOrThrowError(networks: Array<Network>, target: string): Network {
   return networks.find(_network => _network.name === target) ?? (() => {
-    throw new BTPError(ERR_UNKNOWN_SERVICE, { name: target });
+    throw invalidArgument(`unknown service(${target})`);
   })();
 }
 

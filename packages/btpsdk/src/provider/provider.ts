@@ -28,7 +28,7 @@
  * @param {string} service name
  * @async
  * @return {Service}
- * @throws {ERR_UNKNOWN_SERVICE}
+ * @throws {INVALID_ARGUMENT}
  */
 /**
  * Send service transaction
@@ -142,7 +142,6 @@
  * @memberof @iconfoundation/btpsdk
  */
 
-import { base64ToHex } from '../utils/index.js';
 import type { ServiceDescription } from '../service/index.js';
 import type {
   Receipt,
@@ -179,10 +178,8 @@ import {
 } from './request';
 
 import {
-  BTPError,
+  invalidArgument,
   ServerRejectError,
-  ERR_UNKNOWN_NETWORK_NAME,
-  ERR_UNKNOWN_SERVICE,
 } from '../error/index';
 
 import { getLogger } from '../utils/log';
@@ -290,7 +287,7 @@ export class BTPProvider implements Provider {
         return this.#finalizer;
       }
       default:
-        throw new Error("TODO");
+        throw invalidArgument(`unknown event type(${type})`);
     }
     if (!this.#emitters.has(type)) {
       this.#emitters.set(type, emitter);
@@ -308,39 +305,42 @@ export class BTPProvider implements Provider {
 
   async service(name: string): Promise<Service> {
     const desc = (await this.#descriptions()).find(desc => desc.name === name);
-    return new Service(this, desc ?? (() => { throw new BTPError(ERR_UNKNOWN_SERVICE, { name }) })());
+    return new Service(this, desc ?? (() => { throw invalidArgument(`unknown service(${name})`) })());
   }
 
   async transact(network: string | Network, service: string, method: string, params: Map<string, any>, options: TransactOpts): Promise<PendingTransaction> {
     if (typeof(network) == 'string') {
       network = ((await this.#services()).find(info => info.name === service) ??
-        (() => { throw new BTPError(ERR_UNKNOWN_SERVICE, { service }); })()).networks.find(net => net.name === network) ??
-        (() => { throw new BTPError(ERR_UNKNOWN_NETWORK_NAME, { name: network }); })();
-      log.debug('conv network name to network instance:', network);
+        (() => { throw invalidArgument(`unknown service name(${service})`); })()).networks.find(net => net.name === network) ??
+        (() => { throw invalidArgument(`unknown network name(${network})`); })();
     }
 
     if (!!options.from != !!options.signature) {
-      throw new Error('both `from` and `signautre` must be null or have values');
+      throw invalidArgument('`options.from` and `options.signature` must be null or have value');
     }
 
     if (options.signer != null && options.from == null && options.signature == null) {
       const from = await options.signer.address(network.type);
+      log.debug(`user signer address(${from})`);
       try {
+        log.debug('params:', params);
+        log.debug('options:', Object.assign({ ...options }, { from, signer: undefined }));
         await this.#client.request<string>(`/api/${service}/${method}`, {
           method: 'POST',
           body: JSON.stringify({
             network: network.name,
             params,
-            options: Object.assign({ ...options }, { from }),
+            options: Object.assign({ ...options }, { from, signer: undefined }),
           })
         });
       } catch (error) {
-        if (!(error instanceof ServerRejectError) || error.scode != 1005) {
+        if (!(error instanceof ServerRejectError) || error.payload.code != 1005) {
           throw error;
         }
         options = formatRetransact(network.type, options, error);
-        const message = error.data.data;
-        options.signature = await options.signer!.sign(network.type, base64ToHex(message));
+        const message = Buffer.from(error.payload.data.data, 'base64').toString('hex');
+        const signature = await options.signer!.sign(network.type, message);
+        options.signature = Buffer.from(signature, 'hex').toString('base64');
       }
     }
 
@@ -360,8 +360,8 @@ export class BTPProvider implements Provider {
   async call(network: Network | string, service: string, method: string, params: Map<string, any>, options: CallOpts): Promise<any> {
     if (typeof(network) == 'string') {
       network = ((await this.#services()).find(info => info.name === service) ??
-        (() => { throw new BTPError(ERR_UNKNOWN_SERVICE, { service }); })()).networks.find(net => net.name === network) ??
-        (() => { throw new BTPError(ERR_UNKNOWN_NETWORK_NAME, { name: network }); })();
+        (() => { throw invalidArgument(`unknown service name(${service})`); })()).networks.find(net => net.name === network) ??
+        (() => { throw invalidArgument(`unknown network name(${network})`); })();
       log.debug('conv network name to network instance:', network);
     }
 
@@ -387,7 +387,7 @@ export class BTPProvider implements Provider {
   async #network(name: string): Promise<Network> {
     return (await this.networks()).find(network => network.name  === name)
       ?? (() => {
-        throw new BTPError(ERR_UNKNOWN_NETWORK_NAME, { name });
+        throw invalidArgument(`unknown network(${name})`);
       })();
   }
 

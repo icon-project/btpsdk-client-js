@@ -1,8 +1,7 @@
 import {
   assert,
-  BTPError,
-  ERR_INCONSISTENT_BLOCK,
-  ERR_UNSUPPORTED,
+  BtpError,
+  ErrorCode,
 } from "../error/index";
 
 import type { Network } from './provider';
@@ -49,7 +48,7 @@ export class BlockFinalityEmitter implements EventEmitter<BlockFilter> {
   }
 
   on(name: string, filter: any, listener: EventListener): this {
-    throw new BTPError(ERR_UNSUPPORTED);
+    throw new BtpError(ErrorCode.UnsupportedOperation);
   }
 
   once(name: string, filter: BlockFilter, listener: EventListener): this {
@@ -134,13 +133,13 @@ export class BlockFinalityEmitter implements EventEmitter<BlockFilter> {
     }
     const item = pool.at(0)!;
     let finality = false;
-    let error: undefined | BTPError = undefined;
+    let error: undefined | BtpError = undefined;
     try {
       finality = await this.#provider.getBlockFinality(network, item.id, item.height);
     } catch (err) {
-      assert(BTPError.is(err, ERR_INCONSISTENT_BLOCK), `[TODO] handler other errors - error: ${err}`);
+      assert((<BtpError>err).code === ErrorCode.InconsistentBlock, 'TODO: handle error' + err);
       finality = true;
-      if (err instanceof BTPError) {
+      if (err instanceof BtpError) {
         error = err;
       }
     } finally {

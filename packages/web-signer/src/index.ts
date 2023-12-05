@@ -1,11 +1,12 @@
 import {
   Signer,
   Signers,
+  BtpError,
+  ErrorCode,
+  getLogger,
 } from "@iconfoundation/btpsdk";
 
-import {
-  MetaMaskSDK
-} from "@metamask/sdk";
+const log = getLogger('web-signer');
 
 /**
  * @namespace @iconfoundation/btpsdk-web-signer
@@ -19,59 +20,55 @@ import {
  * @implements {Signer}
  * @memberof @iconfoundation/btpsdk-web-signer
  */
-export class WebMetamaskSigner implements Signer {
-  #metamask: MetaMaskSDK
 
+const compactSigMagicOffset = 27;
+
+function recoverFlagToCompatible(signature: string) {
+    let flag = parseInt(signature.substring(signature.length - 2), 16);
+    if (flag >= compactSigMagicOffset) {
+        flag = flag - compactSigMagicOffset;
+        return signature.substring(0, signature.length - 2) + flag.toString(16).padStart(2, '0');
+    }
+    return signature;
+}
+
+export class WebMetamaskSigner implements Signer {
   constructor() {
-    this.#metamask = new MetaMaskSDK({
-      preferDesktop: false,
-      storage: {
-        enabled: true,
-      },
-      injectProvider: true,
-      forceInjectProvider: false,
-      enableDebug: true,
-      shouldShimWeb3: true,
-      dappMetadata: {
-        name: '',
-        url: '',
-      },
-      i18nOptions: {
-        enabled: false,
-      },
-    });
-    // {
-    //   dappMetadata: {
-    //     name: '',
-    //     url: ''
-    //   },
-    //   preferDesktop: true,
-    //   useDeeplink: true,
-    //   extensionOnly: false,
-    //   enableDebug: false,
-    //   logging: {
-    //     developerMode: true,
-    //     sdk: true
-    //   }
-    // });
+    if (this.getProvider() == null || this.getProvider().isMetaMask != true) {
+      throw new BtpError(ErrorCode.UnsupportedOperation, `no metamask`);
+    }
   }
 
-  async init(): Promise<void> {
-    console.log('MetamaskSigner::init');
-    return new Promise(async (resolve, reject) => {
-      const accounts = await this.#metamask.connect();
-      if (accounts == null || (accounts as Array<string>).length <= 0) {
-        this.#metamask.getProvider().once('accountsChanged', (accounts: any) => {
-          if (accounts.length <= 0) {
-            reject(new Error('no avail accounts'));
-          } else {
-            resolve();
-          }
-        });
+  getProvider() {
+    return getGlobal().ethereum;
+  }
+
+  async connected(): Promise<boolean> {
+    const accounts = await this.getProvider().request({ method: 'eth_accounts' });
+    return accounts.length > 0;
+  }
+
+  async connect(): Promise<void> {
+    try {
+      log.debug('try to connect accounts on metamask');
+      const addrs = await this.getProvider().request({ method: 'eth_requestAccounts' });
+      log.debug('connected metamask accounts:', addrs);
+    } catch (error) {
+      if (error.code === 4001) {
+        throw new BtpError(ErrorCode.Abort, error.message);
       } else {
-        resolve();
+        throw new BtpError(ErrorCode.UnknownError, 'fail to connect accounts of metamask', error);
       }
-    });
+    }
+  }
+
+  // strategy method for retrieve one of a number of addresses
+  protected _elect(candidates: string | Array<string>): string {
+    if (typeof(candidates) === 'string') {
+      return candidates;
+    } else {
+      return candidates[0];
+    }
   }
 
   supports(): Array<string> {
@@ -79,28 +76,31 @@ export class WebMetamaskSigner implements Signer {
   }
 
   async address(type: string): Promise<string> {
-    console.log('WebMetamaskSigner::address()');
-    const provider = this.#metamask.getProvider();
-    const accounts = await provider.request({ method: 'eth_accounts' }) as Array<string>;
-    if (accounts.length <= 0) {
-      throw new Error('no avail accounts');
+    let addresses = [];
+    try {
+      addresses = await this.getProvider().request( { method: 'eth_requestAccounts' });
+    } catch (error) {
+      if (error.code === 4001) {
+        throw new BtpError(ErrorCode.Abort, error.message);
+      } else {
+        throw new BtpError(ErrorCode.UnknownError, 'fail to connect accounts of metamask', error);
+      }
     }
-    return accounts[0];
+    if (addresses.length <= 0) {
+      throw new BtpError(ErrorCode.IllegalState, 'no avail accounts');
+    }
+    return this._elect(addresses);
   }
 
   async sign(type: string, message: string): Promise<string> {
-    console.log('WebMetamaskSigner::sign()');
-    const provider = this.#metamask.getProvider();
-    const address = await this.address(type);
-    try {
-      const signature = await provider.request({
-        method: 'eth_sign',
-        params: [ address, '0x1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8' ]
-      });
-      return signature as string;
-    } catch (error) {
-      throw new Error(error.message);
-    }
+    const signature = await this.getProvider().request({
+      method: 'eth_sign',
+      params: [
+        await this.address(type),
+        '0x'+message,
+      ]
+    });
+    return recoverFlagToCompatible(signature).slice(2);
   }
 }
 
@@ -137,7 +137,6 @@ export class WebHanaSigner extends Signers {
 export class WebIconHanaSigner implements Signer {
 
   async init(): Promise<void> {
-    console.log('WebIconHanaSigner::init()');
     return new Promise((resolve, reject) => {
       const global = getGlobal();
       global.dispatchEvent(new CustomEvent('ICONEX_RELAY_REQUEST', {
@@ -149,7 +148,6 @@ export class WebIconHanaSigner implements Signer {
       }, 3000);
       function fn (ev: any) {
         clearTimeout(timer);
-        console.log('ready to using icon wallet');
         resolve();
       }
       global.addEventListener('ICONEX_RELAY_RESPONSE', fn, { once: true });
@@ -161,7 +159,6 @@ export class WebIconHanaSigner implements Signer {
   }
 
   async address(type: string): Promise<string> {
-    console.log('WebIconHanaSigner::address()');
     return new Promise((resolve, reject) => {
       const global = getGlobal();
       if (!global.dispatchEvent(new CustomEvent('ICONEX_RELAY_REQUEST', {
@@ -171,9 +168,7 @@ export class WebIconHanaSigner implements Signer {
       }
 
       const fn = (ev: any) => {
-        console.log('got address event:', ev);
         if (ev.detail.type !== 'RESPONSE_ADDRESS') {
-          console.log('ignore unknown event1:', ev);
           return;
         }
         global.removeEventListener('ICONEX_RELAY_RESPONSE', fn);
@@ -185,7 +180,6 @@ export class WebIconHanaSigner implements Signer {
   }
 
   async sign(type: string, message: string): Promise<string> {
-    console.log('WebIconHanaSigner::sign()');
     const global = getGlobal();
     return new Promise(async (resolve, reject) => {
       const address = await this.address(type);
@@ -194,7 +188,7 @@ export class WebIconHanaSigner implements Signer {
           type: 'REQUEST_SIGNING',
           payload: {
             from: address,
-            hash: '9babe5d2911e8e42dfad72a589202767f95c6fab49523cdc16279a7b8f82eab2',
+            hash: message,
           }
         }
       }))) {
@@ -205,7 +199,7 @@ export class WebIconHanaSigner implements Signer {
         const { type, payload } = ev.detail;
         if (['RESPONSE_SIGNING', 'CANCEL_SIGNING'].includes(type)) {
           global.removeEventListener('ICONEX_RELAY_RESPONSE', fn);
-          return type === 'RESPONSE_SIGNING' ? resolve(payload) : reject(new Error('UserAbort'));
+          return type === 'RESPONSE_SIGNING' ? resolve(Buffer.from(payload, 'base64').toString('hex')) : reject(new Error('UserAbort'));
         }
       });
     });
@@ -220,58 +214,10 @@ export class WebIconHanaSigner implements Signer {
  * @implements {Signer}
  * @memberof @iconfoundation/btpsdk-web-signer
  */
-export class WebEvmHanaSigner implements Signer {
+export class WebEvmHanaSigner extends WebMetamaskSigner {
 
-  async init(): Promise<void> {
-    console.log('WebEvmHanaSigner::init()');
-    return new Promise((resolve, reject) => {
-      // NOTE:) apis of provider are not working when no connected evm chains,
-      // even if the provider is exists
-      const provider = getGlobal().hanaWallet?.ethereum;
-      console.log('evm provider:', provider);
-      if (provider != null) {
-        console.log('ready to using evm wallet');
-        resolve();
-      } else {
-        reject(new Error('no evm provider on hana wallet'));
-      }
-    });
+  getProvider() {
+    return getGlobal().hanaWallet?.ethereum;
   }
 
-  // strategy method for retrieve one of a number of addresses
-  protected _elect(candidates: string | Array<string>): string {
-    if (typeof(candidates) === 'string') {
-      return candidates;
-    } else {
-      return candidates[0];
-    }
-  }
-
-  supports(): Array<string> {
-    return ['evm', 'eth2', 'bsc'];
-  }
-
-  async address(type: string): Promise<string> {
-    console.log('WebEvmHanaWallet::address()');
-    const provider = getGlobal().hanaWallet.ethereum;
-    const addresses = await provider.request( { method: 'eth_requestAccounts' });
-    if (addresses.length <= 0) {
-      throw new Error('no avail accounts');
-    }
-    return this._elect(addresses);
-  }
-
-  async sign(type: string, message: string): Promise<string> {
-    console.log('WebEvmHanaSigner::sign()');
-    const provider = getGlobal().hanaWallet.ethereum;
-    const signature = await provider.request({
-      method: 'eth_sign',
-      params: [
-        await this.address(type),
-        '0x1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8'
-      ]
-    });
-    console.log('signature:', signature);
-    return signature as string;
-  }
 }

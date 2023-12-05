@@ -1,6 +1,11 @@
-import { Signer } from '@iconfoundation/btpsdk';
+import {
+  Signer,
+  invalidArgument,
+} from '@iconfoundation/btpsdk';
 
-import { Wallet as _IconWallet } from 'icon-sdk-js';
+import {
+  Wallet as _IconWallet,
+} from 'icon-sdk-js';
 
 /**
  * @namespace @iconfoundation/btpsdk-json-signer
@@ -42,13 +47,13 @@ export class IconWallet implements Signer {
 
   async address (type: string): Promise<string> {
     if (type != 'icon') {
-      throw new Error('not supported network');
+      throw invalidArgument(`unsupported network type(${type})`);
     }
     return this.#wallet.getAddress();
   }
 
   async sign (type: string, message: string): Promise<string> {
-    return this.#wallet.sign(message);
+    return Buffer.from(this.#wallet.sign(message), 'base64').toString('hex');
   }
 }
 
@@ -92,12 +97,12 @@ export class EvmWallet implements Signer {
 
   async address (type: string): Promise<string> {
     if (!this.supports().includes(type)) {
-      throw new Error('not supported network');
+      throw invalidArgument(`unsupported network type(${type})`);
     }
     return this.#wallet.address;
   }
 
   async sign (type: string, message: string): Promise<string> {
-    return this.#wallet.signMessageSync(message);
+    return this.#wallet.signMessageSync(message.slice(2));
   }
 }
