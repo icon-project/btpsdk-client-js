@@ -1,0 +1,100 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+label {
+    margin: 0px;
+    font-size: 12px;
+}
+
+.row {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.item {
+    border: 1px solid black;
+}
+
+.row {
+    margin: 10px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.column {
+    margin: 10px;
+    display: flex;
+    flex-direction: column;
+    flex-basis: 100%;
+    flex: 1;
+    justify-content: space-between;
+}
+
+.log {
+}
+
+.item {
+}
+/*
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+label {
+    margin: 10px;
+}
+
+.item {
+    border: 1px solid black;
+}
+
+.items {
+    margin: 10px;
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+}
+
+input, label {
+    display: block;
+}
+label {
+    margin-left: 0px;
+    margin-bottom: 0px;
+    font-size: 10px;
+}
+
+.input {
+    float: left;
+    margin-right: 20px;
+}
+
+.item {
+    margin: 10px;
+    display: flex;
+    flex-direction: column;
+    flex-basis: 100%;
+    flex: 1;
+    justify-content: space-between;
+}
+
+.log {
+}
+
+.item {
+}
+*/
