@@ -1,7 +1,10 @@
 export {
   Service,
+} from './service';
+
+export {
   Contract,
-} from "./service";
+} from './contract';
 
 export {
   ServiceDescription,
