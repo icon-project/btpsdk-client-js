@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "declarationMap": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "importHelpers": true,
+    "lib": [
+      "dom",
+      "es2020",
+      "es6"
+    ],
+    "moduleResolution": "node16",
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": false,
+    "noUnusedLocals": false,
+    "rootDir": ".",
+    "strict": true,
+    "sourceMap": true,
+    "target": "es2022",
+    "useUnknownInCatchVariables": false,
+    "module": "commonjs"
+  },
+  "exclude": [],
+  "include": ["index.ts"]
+}
