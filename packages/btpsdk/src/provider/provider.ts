@@ -412,7 +412,7 @@ export class BTPProvider implements Provider {
       this.#network(filter.network)
         .then((network) => {
           filter.network = network;
-          this.#getEmitter(type).on(type, filter as EventFilter, listener);
+          this.#getEmitter(type).once(type, filter as EventFilter, listener);
         })
         .catch((error) => {
           listener(error);
