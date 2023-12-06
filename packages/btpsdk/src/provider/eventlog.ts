@@ -104,24 +104,23 @@ export class LogEmitter implements EventEmitter<LogFilter> {
       if (payload.code != undefined) {
         return;
       }
-      // TODO supports to fire finalized events 
+      // TODO supports to fire finalized events
       if (this.#listener != null) {
         this.#listener(undefined, formatEventLog(filter.network.type as NetworkType, payload));
       }
       if (once) {
+        log.debug('try to close ws connection with code-1000');
         ws.close(1000);
       }
     };
 
     ws.onclose = (ev: { code: number, reason: string }) => {
+      log.debug(`ws conn has been closed - code(${ev.code}) reason(${ev.reason})`);
       if (ev.code !== 1000 && this.#listener != null) {
-        log.info(`ws connection closed - code(${ev.code}) reason(${ev.reason})`);
         this.#listener(new BtpError(ErrorCode.ClosedConnection, `ws code(${ev.code}) reason(${ev.reason})`), ev);
       }
-      if (this.#ws != null && this.#ws === ws) {
-        this.#ws = undefined;
-        this.#listener = undefined;
-      }
+      this.#ws = undefined;
+      this.#listener = undefined;
     };
 
     ws.onerror = (ev: any) => {

@@ -48,7 +48,7 @@ export function formatServicesInfo (value: any): Array<ServiceInfo> {
 
 // format response of `/api`
 export function formatNetworks (value: any): Array<Network> {
-  log.debug('formatNetworks:', JSON.stringify(value, null, 2));
+  log.debug('formatNetworks:', JSON.stringify(value));
   //checkType(Array.isArray(value));
   // checkType(typeof(value.name) === 'string');
   // checkType(typeof(value.networks) === 'object');

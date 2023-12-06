@@ -53,7 +53,6 @@ export class BlockFinalityEmitter implements EventEmitter<BlockFilter> {
 
   once(name: string, filter: BlockFilter, listener: EventListener): this {
     log.debug(`once(${name}, ${JSON.stringify(filter)})`);
-    //log.debug('++once', name, filter)
     const network = typeof(filter.network) === 'string'
       ? filter.network
       : filter.network.name
@@ -145,7 +144,7 @@ export class BlockFinalityEmitter implements EventEmitter<BlockFilter> {
     } finally {
       if (finality) {
         for (const listener of item.listeners) {
-          log.debug('notify events');
+          log.debug(`emit block finality event - network(${network}) block(${item.height}:${item.id})`);
           listener(error);
         }
         pool.shift();
@@ -159,6 +158,7 @@ export class BlockFinalityEmitter implements EventEmitter<BlockFilter> {
   }
 
   #stop(network: string) {
+    log.debug(`try to stop block event emitter - network${network}`);
     const timer = this.#timers.get(network);
     if (timer !== undefined) {
       if (timer !== null) {
