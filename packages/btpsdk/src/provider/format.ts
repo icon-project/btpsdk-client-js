@@ -305,9 +305,9 @@ export const formatReceipt = (type: NetworkType, value: any): Receipt => {
           id: receipt.BlockHash,
           height: receipt.BlockHeight
         },
-        cumulativeUsed: receipt.Raw.cumulativeStepUsed,
-        used: receipt.Raw.stepUsed,
-        price: receipt.Raw.stepPrice,
+        cumulativeResourceUsed: receipt.Raw.cumulativeStepUsed,
+        resourceUsed: receipt.Raw.stepUsed,
+        resourcePrice: receipt.Raw.stepPrice,
         logs: receipt.Raw.eventLogs,
         failure: receipt.Failure
       }
@@ -323,9 +323,9 @@ export const formatReceipt = (type: NetworkType, value: any): Receipt => {
           id: receipt.Raw.blockHash,
           height: Number.parseInt(receipt.Raw.blockNumber, 16),
         },
-        cumulativeUsed: receipt.Raw.cumulativeGasUsed,
-        used: receipt.Raw.gasUsed,
-        price: receipt.Raw.effectiveGasPrice,
+        cumulativeResourceUsed: receipt.Raw.cumulativeGasUsed,
+        resourceUsed: receipt.Raw.gasUsed,
+        resourcePrice: receipt.Raw.effectiveGasPrice,
         logs: receipt.Raw.logs,
         failure: receipt.Failure
       }

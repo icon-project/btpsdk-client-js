@@ -111,19 +111,19 @@
 /**
  * cumulative used resource for transactions
  *
- * @name BaseReceipt#cumulativeUsed
+ * @name BaseReceipt#cumulativeResourceUsed
  * @type {string}
  */
 /**
  * used resource for the transaction
  *
- * @name BaseReceipt#used
+ * @name BaseReceipt#resourceUsed
  * @type {string}
  */
 /**
  * resource price
  *
- * @name BaseReceipt#price
+ * @name BaseReceipt#resourcePrice
  * @type {string}
  */
 /**
@@ -189,9 +189,9 @@ export interface BaseReceipt {
     id: string;
     height: number;
   },
-  cumulativeUsed: string;
-  used: string;
-  price: string;
+  cumulativeResourceUsed: string;
+  resourceUsed: string;
+  resourcePrice: string;
   failure: {
     code: number;
     message: string;
