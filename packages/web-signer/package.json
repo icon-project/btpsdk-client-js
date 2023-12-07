@@ -1,6 +1,6 @@
 {
   "name": "@iconfoundation/btpsdk-web-signer",
-  "version": "1.0.0",
+  "version": "0.0.1-alpha.0",
   "description": "",
   "module": "./lib.esm/index.js",
   "scripts": {
