@@ -25,16 +25,11 @@ import {
 const log = getLogger('web-signer');
 
 /**
- * @namespace @iconfoundation/btpsdk-web-signer
- */
-
-/**
  * signer class based on metamask chrome extension
  *
  * @class
  * @name WebMetamaskSigner
  * @implements {Signer}
- * @memberof @iconfoundation/btpsdk-web-signer
  */
 
 const compactSigMagicOffset = 27;
@@ -133,7 +128,6 @@ function getGlobal(): any {
  * @class
  * @name WebHanaSigner
  * @implements {Signer}
- * @memberof @iconfoundation/btpsdk-web-signer
  */
 export class WebHanaSigner extends Signers {
   constructor() {
@@ -148,7 +142,6 @@ export class WebHanaSigner extends Signers {
  * @class
  * @name WebIconHanaSigner
  * @implements {Signer}
- * @memberof @iconfoundation/btpsdk-web-signer
  */
 export class WebIconHanaSigner implements Signer {
 
@@ -228,7 +221,6 @@ export class WebIconHanaSigner implements Signer {
  * @class
  * @name WebEvmHanaSigner
  * @implements {Signer}
- * @memberof @iconfoundation/btpsdk-web-signer
  */
 export class WebEvmHanaSigner extends WebMetamaskSigner {
 

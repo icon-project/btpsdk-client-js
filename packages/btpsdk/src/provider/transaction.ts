@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 /**
  * base transact options
  *
  * @interface BaseTransactOpts
- * @memberof @iconfoundation/btpsdk
  */
 /**
  * a signer object for signing transaction
@@ -56,65 +54,70 @@
  *
  * @interface IconTransactOpts
  * @extends BaseTransactOpts
- * @memberof @iconfoundation/btpsdk
  */
 /**
  * step limit
  *
  * @name IconTransactOpts#stepLimit
  * @type {number=}
+ * @memberof IconTransactOpts
  */
 /**
  * timestamp
  *
  * @name IconTransactOpts#timestamp
  * @type {number=}
+ * @memberof IconTransactOpts
  */
 /**
  * transact options for evm networks
  *
  * @interface EvmTransactOpts
  * @extends BaseTransactOpts
- * @memberof @iconfoundation/btpsdk
  */
 /**
  * gas price
  *
  * @name EvmTransactOpts#gasPrice
  * @type {number=}
+ * @memberof EvmTransactOpts
  */
 /**
  * gas limit
  *
  * @name EvmTransactOpts#gasLimit
  * @type {number=}
+ * @memberof EvmTransactOpts
  */
 /**
  * gasFeeCap
  *
  * @name EvmTransactOpts#gasFeeCap
  * @type {number=}
+ * @memberof EvmTransactOpts
  */
 /**
  * gasTipCap
  *
  * @name EvmTransactOpts#gasTipCap
  * @type {number=}
+ * @memberof EvmTransactOpts
  */
 /**
  * nonce
  *
  * @name EvmTransactOpts#nonce
  * @type {number=}
+ * @memberof EvmTransactOpts
  */
 /**
- * @typedef {(IconTransactOpts|EvmTransactOpts)} TransactOpts
+ * @interface TransactOpts
+ * @extends {(IconTransactOpts|EvmTransactOpts)}
  */
 /**
  * base receipt interface
  *
  * @interface BaseReceipt
- * @memberof @iconfoundation/btpsdk
  */
 /**
  * block object
@@ -123,24 +126,28 @@
  * @type {Object}
  * @property {string} id - block id
  * @property {number} height - block height
+ * @memberof BaseReceipt
  */
 /**
  * cumulative used resource for transactions
  *
  * @name BaseReceipt#cumulativeResourceUsed
  * @type {string}
+ * @memberof BaseReceipt
  */
 /**
  * used resource for the transaction
  *
  * @name BaseReceipt#resourceUsed
  * @type {string}
+ * @memberof BaseReceipt
  */
 /**
  * resource price
  *
  * @name BaseReceipt#resourcePrice
  * @type {string}
+ * @memberof BaseReceipt
  */
 /**
  * a receipt for icon networks
@@ -156,6 +163,7 @@
  * @property {string} scoreAddress
  * @property {Array<string>} indexed
  * @property {Array<string>} data
+ * @memberof IconReceipt
  */
 /**
  * a receipt for evm networks
@@ -177,10 +185,11 @@
  * @property {string} transactionIndex
  * @property {string} logIndex
  * @property {boolean} removed
+ * @memberof EthReceipt
  */
 /**
- * @typedef {IconReceipt|EthReceipt} Receipt
- * @memberof @iconfoundation/btpsdk
+ * @interface Receipt
+ * @extends {IconReceipt|EthReceipt}
  */
 
 
@@ -271,8 +280,6 @@ export type CallOpts = {
 
 /**
  * PendingTransaction class
- *
- * @memberof @iconfoundation/btpsdk
  */
 export class PendingTransaction {
   #provider: Provider;

@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-/**
- * @namespace @iconfoundation/btpsdk
- */
-
 import * as btp from "./btp";
 
 export { btp };

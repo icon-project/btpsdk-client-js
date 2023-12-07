@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 /**
  * Interface for http client
  *
  * @interface HttpProvider
- * @memberof @iconfoundation/btpsdk
  */
 /**
  * endpoint of http(s) server
@@ -66,7 +64,6 @@ const log = getLogger('request');
  * Http Provider Implementation
  *
  * @implements {HttpProvider}
- * @memberof @iconfoundation/btpsdk
  */
 export class BTPHttpProvider implements HttpProvider {
   #baseUrl: string | HttpRequestCreator;

@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 /**
  * Interface for btpsdk client
  *
  * @interface Provider
- * @memberof @iconfoundation/btpsdk
  */
 /**
  * Returns all btp networks
@@ -130,17 +128,14 @@
  * @typedef {Object} Network
  * @property {string} name
  * @property {string} type
- * @memberof @iconfoundation/btpsdk
  */
 /**
  * @typedef {ProviderLogFilter|ProviderBlockFilter} ProviderFilter
- * @memberof @iconfoundation/btpsdk
  */
 /**
  * @typedef {Object} ProviderLogFilter
  * @property {string|Network} network - network name or network object
  * @property {string} service - service name
- * @memberof @iconfoundation/btpsdk
  */
 /**
  * @typedef {Object} ProviderBlockFilter
@@ -148,14 +143,12 @@
  * @property {string} status
  * @property {string} id - block id
  * @property {number} height - block height
- * @memberof @iconfoundation/btpsdk
  */
 /**
  * event listener
  *
  * @callback EventListener
  * @param {Array<any>} ...args
- * @memberof @iconfoundation/btpsdk
  */
 
 import type { ServiceDescription } from '../service/index.js';
@@ -258,7 +251,6 @@ export interface Provider extends EventEmitter<ProviderFilter> {
  * BTPProvider
  *
  * @implements {Provider}
- * @memberof @iconfoundation/btpsdk
  */
 export class BTPProvider implements Provider {
   #client: HttpProvider;

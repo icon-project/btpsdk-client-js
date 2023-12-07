@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 /**
  * Interface for classes that sign transactions
  *
  * @interface Signer
- * @memberof @iconfoundation/btpsdk
  */
 /**
  * Returns supported network types by this signer
@@ -58,7 +56,6 @@ import {
  * Signer utility class that has multiple signer objects
  *
  * @implements {Signer}
- * @memberof @iconfoundation/btpsdk
  */
 export class Signers implements Signer {
   #signers: Array<Signer>;

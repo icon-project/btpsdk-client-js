@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 /**
  * @typedef {Object} EventLog
  * @property {Object} block
@@ -26,7 +25,6 @@
  * @property {Object} payload
  * @property {string} playload.name
  * @property {Map<string, any>} playload.params
- * @memberof @iconfoundation/btpsdk
  */
 
 import { WebSocket as WebSock } from "./ws";

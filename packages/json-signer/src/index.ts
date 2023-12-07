@@ -24,15 +24,10 @@ import {
 } from 'icon-sdk-js';
 
 /**
- * @namespace @iconfoundation/btpsdk-json-signer
- */
-
-/**
  * Json wallet class compatible with icon networks
  *
  * @hideconstructor
  * @implements {Signer}
- * @memberof @iconfoundation/btpsdk-json-signer
  */
 export class IconWallet implements Signer {
   #wallet: _IconWallet;
@@ -83,7 +78,6 @@ import {
  *
  * @hideconstructor
  * @implements {Signer}
- * @memberof @iconfoundation/btpsdk-json-signer
  */
 export class EvmWallet implements Signer {
   #wallet: _EvmWallet | _EvmHDNodeWallet;
