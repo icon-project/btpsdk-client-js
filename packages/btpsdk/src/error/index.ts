@@ -14,7 +14,7 @@ export enum ErrorCode {
 }
 
 export class BtpError extends Error {
-  code: ErrorCode;
+  readonly code: ErrorCode
 
   constructor(code: ErrorCode, message: string = code, cause?: Error) {
     super(`${code}: ${message}`, { cause });
@@ -23,7 +23,7 @@ export class BtpError extends Error {
   }
 }
 
-export class ServerRejectError extends BtpError {
+export class ServerError extends BtpError {
   readonly payload: {
     code: number;
     message: string;

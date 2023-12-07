@@ -179,7 +179,7 @@ import {
 
 import {
   invalidArgument,
-  ServerRejectError,
+  ServerError,
 } from '../error/index';
 
 import { getLogger } from '../utils/log';
@@ -334,7 +334,7 @@ export class BTPProvider implements Provider {
           })
         });
       } catch (error) {
-        if (!(error instanceof ServerRejectError) || error.payload.code != 1005) {
+        if (!(error instanceof ServerError) || error.payload.code != 1005) {
           throw error;
         }
         options = formatRetransact(network.type, options, error);

@@ -5,21 +5,11 @@
  * @memberof @iconfoundation/btpsdk
  */
 /**
- * Initialize signer object
- *
- * @async
- * @function
- * @name Signer#init
- * @returns {void}
- * @throws {TODO}
- */
-/**
  * Returns supported network types by this signer
  *
  * @function
  * @name Signer#supports
  * @returns {Array<string>}
- * @throws {TODO}
  */
 /**
  * Returns address for the network type
@@ -28,7 +18,6 @@
  * @function
  * @name Signer#address
  * @returns {string}
- * @throws {TODO}
  */
 /**
  * Returns signature for the input message
@@ -37,7 +26,6 @@
  * @function
  * @name Signer#sign
  * @returns {string}
- * @throws {TODO}
  */
 
 export interface Signer {

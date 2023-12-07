@@ -10,7 +10,7 @@ import type {
 
 import {
   assert,
-  ServerRejectError,
+  ServerError,
   invalidArgument,
   BtpError,
   ErrorCode,
@@ -360,7 +360,7 @@ export const formatTransactOpts = (type: NetworkType, options: TransactOpts) => 
   }
 }
 
-export const formatRetransact = (type: NetworkType, options: TransactOpts, error: ServerRejectError) => {
+export const formatRetransact = (type: NetworkType, options: TransactOpts, error: ServerError) => {
   const _assert = (expected: string | undefined, actual: string) => {
     assert(expected == null || expected === actual, `invalid from address, expected(${expected}) actual(${actual})`);
   }

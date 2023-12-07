@@ -27,7 +27,7 @@ import {
 } from '../utils/index';
 
 import {
-  ServerRejectError,
+  ServerError,
 } from '../error/index';
 
 export type DefaultHttpOpts = Pick<RequestInit, 'cache' | 'credentials' | 'headers' | 'integrity' |
@@ -76,12 +76,18 @@ export class BTPHttpProvider implements HttpProvider {
 
   async request<T = { [key: string]: any }>(path: string, options?: RequestInit): Promise<T> {
     log.debug(`request - path(${path}) options(${JSON.stringify(options ?? {})})`);
+    const url = typeof this.#baseUrl === 'string' ? this.#baseUrl : this.#baseUrl.baseUrl;
     const opt = (options != null ? merge(this.#options, options) : this.#options) as RequestInit;
-    const response = typeof(this.#baseUrl) === 'string' ? await fetch(this.#baseUrl.concat(path), opt) : await this.#baseUrl(path, opt);
-    if (!response.ok) {
-      const res = await response.json();
-      throw new ServerRejectError({ code: res.code, message: res.message, data: res.data });
+    try {
+      const response = typeof(this.#baseUrl) === 'string' ? await fetch(this.#baseUrl.concat(path), opt) : await this.#baseUrl(path, opt);
+      if (!response.ok) {
+        const res = await response.json();
+        throw new ServerError({ code: res.code, message: res.message, data: res.data });
+      }
+      return (await response.json()) as T;
+    } catch (error) {
+      log.error(`fail to fetch - baseUrl(${url}) path(${path}) options(${JSON.stringify(opt)})`);
+      throw error;
     }
-    return (await response.json()) as T;
   }
 }

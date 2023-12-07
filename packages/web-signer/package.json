@@ -13,7 +13,6 @@
   "license": "ISC",
   "dependencies": {
     "@iconfoundation/btpsdk": "file:../btpsdk",
-    "@metamask/sdk": "^0.10.0",
     "ethers": "^6.8.0"
   },
   "devDependencies": {
